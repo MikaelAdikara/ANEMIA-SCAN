@@ -4,26 +4,35 @@ import type {
   IsoTimestamp,
   RiskForm,
   RiskLevel,
-  ScreeningCompletionState,
   ScreeningRecord,
   TargetGroup,
 } from '../domain/types'
 
 export const DEMO_DATA_LABEL = 'Data demo sintetis'
 
-interface DemoScreeningSeed {
+interface DemoScreeningSeedBase {
   startedAt: IsoTimestamp
-  completedAt: IsoTimestamp | null
   siteId: string
   targetGroup: TargetGroup
-  riskScore: number
-  riskLevel: RiskLevel
-  completionState: ScreeningCompletionState
-  durationSeconds: number
   followUpStatus: FollowUpStatus
   eyeQuality: ImageQuality
   nailQuality: ImageQuality
 }
+
+interface CompletedDemoScreeningSeed extends DemoScreeningSeedBase {
+  completionState: 'completed'
+  completedAt: IsoTimestamp
+  durationSeconds: number
+  riskScore: number
+  riskLevel: RiskLevel
+}
+
+interface IncompleteDemoScreeningSeed extends DemoScreeningSeedBase {
+  completionState: 'incomplete'
+  riskFormPattern: RiskLevel
+}
+
+type DemoScreeningSeed = CompletedDemoScreeningSeed | IncompleteDemoScreeningSeed
 
 const DEMO_SCREENING_SEEDS = [
   {
@@ -119,13 +128,10 @@ const DEMO_SCREENING_SEEDS = [
   },
   {
     startedAt: '2026-06-25T14:19:00+07:00',
-    completedAt: null,
     siteId: 'SITE-YGY-01',
     targetGroup: 'pregnant',
-    riskScore: 0.63,
-    riskLevel: 'moderate',
     completionState: 'incomplete',
-    durationSeconds: 198,
+    riskFormPattern: 'moderate',
     followUpStatus: 'recommended',
     eyeQuality: 'unusable',
     nailQuality: 'acceptable',
@@ -184,13 +190,10 @@ const DEMO_SCREENING_SEEDS = [
   },
   {
     startedAt: '2026-06-23T10:27:00+07:00',
-    completedAt: null,
     siteId: 'SITE-JKT-01',
     targetGroup: 'adolescent',
-    riskScore: 0.21,
-    riskLevel: 'low',
     completionState: 'incomplete',
-    durationSeconds: 164,
+    riskFormPattern: 'low',
     followUpStatus: 'recommended',
     eyeQuality: 'unusable',
     nailQuality: 'poor',
@@ -229,7 +232,7 @@ const DEMO_SCREENING_SEEDS = [
     riskScore: 0.16,
     riskLevel: 'low',
     completionState: 'completed',
-    durationSeconds: 224,
+    durationSeconds: 236,
     followUpStatus: 'not-required',
     eyeQuality: 'good',
     nailQuality: 'good',
@@ -249,13 +252,10 @@ const DEMO_SCREENING_SEEDS = [
   },
   {
     startedAt: '2026-06-20T08:54:00+07:00',
-    completedAt: null,
     siteId: 'SITE-BDG-01',
     targetGroup: 'pregnant',
-    riskScore: 0.85,
-    riskLevel: 'high',
     completionState: 'incomplete',
-    durationSeconds: 289,
+    riskFormPattern: 'high',
     followUpStatus: 'scheduled',
     eyeQuality: 'poor',
     nailQuality: 'unusable',
@@ -353,13 +353,10 @@ const DEMO_SCREENING_SEEDS = [
   },
   {
     startedAt: '2026-06-16T13:52:00+07:00',
-    completedAt: null,
     siteId: 'SITE-BDG-01',
     targetGroup: 'pregnant',
-    riskScore: 0.66,
-    riskLevel: 'moderate',
     completionState: 'incomplete',
-    durationSeconds: 256,
+    riskFormPattern: 'moderate',
     followUpStatus: 'recommended',
     eyeQuality: 'unusable',
     nailQuality: 'acceptable',
@@ -455,25 +452,44 @@ function createRiskForm(
     targetGroup,
     gestationalAgeWeeks: 8 + ((index * 3) % 32),
     parity: index % 4,
+    muacCategory:
+      riskLevel === 'high' || (riskLevel === 'moderate' && index % 2 === 0)
+        ? 'below-23.5-cm'
+        : 'at-or-above-23.5-cm',
   }
 }
 
 export const DEMO_SCREENINGS: readonly ScreeningRecord[] = DEMO_SCREENING_SEEDS.map(
-  (seed, index) => ({
-    id: `SCR-${String(index + 1).padStart(4, '0')}`,
-    siteId: seed.siteId,
-    startedAt: seed.startedAt,
-    completedAt: seed.completedAt,
-    targetGroup: seed.targetGroup,
-    completionState: seed.completionState,
-    durationSeconds: seed.durationSeconds,
-    riskForm: createRiskForm(seed.targetGroup, seed.riskLevel, index),
-    imageQuality: {
-      eye: seed.eyeQuality,
-      nail: seed.nailQuality,
-    },
-    riskScore: seed.riskScore,
-    riskLevel: seed.riskLevel,
-    followUpStatus: seed.followUpStatus,
-  }),
+  (seed, index): ScreeningRecord => {
+    const riskFormPattern =
+      seed.completionState === 'completed' ? seed.riskLevel : seed.riskFormPattern
+    const commonRecord = {
+      id: `SCR-${String(index + 1).padStart(4, '0')}` as const,
+      siteId: seed.siteId,
+      startedAt: seed.startedAt,
+      targetGroup: seed.targetGroup,
+      riskForm: createRiskForm(seed.targetGroup, riskFormPattern, index),
+      imageQuality: {
+        eye: seed.eyeQuality,
+        nail: seed.nailQuality,
+      },
+      followUpStatus: seed.followUpStatus,
+    }
+
+    if (seed.completionState === 'incomplete') {
+      return {
+        ...commonRecord,
+        completionState: seed.completionState,
+      }
+    }
+
+    return {
+      ...commonRecord,
+      completionState: seed.completionState,
+      completedAt: seed.completedAt,
+      durationSeconds: seed.durationSeconds,
+      riskScore: seed.riskScore,
+      riskLevel: seed.riskLevel,
+    }
+  },
 )

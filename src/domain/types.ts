@@ -17,6 +17,8 @@ export type ScreeningCompletionState = 'completed' | 'incomplete'
 
 export type IronSupplementUse = 'none' | 'irregular' | 'regular'
 
+export type MuacCategory = 'below-23.5-cm' | 'at-or-above-23.5-cm'
+
 export type AnonymousScreeningId = `SCR-${string}`
 
 export type IsoTimestamp = `${number}-${number}-${number}T${number}:${number}:${number}${string}`
@@ -47,24 +49,38 @@ export interface PregnantRiskForm extends CommonRiskForm {
   targetGroup: 'pregnant'
   gestationalAgeWeeks: number
   parity: number
+  muacCategory: MuacCategory
 }
 
 export type RiskForm = AdolescentRiskForm | PregnantRiskForm
 
-export interface ScreeningRecord {
+interface ScreeningRecordBase {
   id: AnonymousScreeningId
   siteId: string
   startedAt: IsoTimestamp
-  completedAt: IsoTimestamp | null
   targetGroup: TargetGroup
-  completionState: ScreeningCompletionState
-  durationSeconds: number
   riskForm: RiskForm
   imageQuality: Record<ImageModality, ImageQuality>
-  riskScore: number
-  riskLevel: RiskLevel
   followUpStatus: FollowUpStatus
 }
+
+export interface CompletedScreeningRecord extends ScreeningRecordBase {
+  completionState: 'completed'
+  completedAt: IsoTimestamp
+  durationSeconds: number
+  riskScore: number
+  riskLevel: RiskLevel
+}
+
+export interface IncompleteScreeningRecord extends ScreeningRecordBase {
+  completionState: 'incomplete'
+  completedAt?: never
+  durationSeconds?: never
+  riskScore?: never
+  riskLevel?: never
+}
+
+export type ScreeningRecord = CompletedScreeningRecord | IncompleteScreeningRecord
 
 export interface ModelMetrics {
   rocAuc?: number
