@@ -1,5 +1,13 @@
+import { BrowserRouter } from 'react-router-dom'
+
+import { ShellRoutes } from './app/ShellRoutes'
+
 function App() {
-  return <main />
+  return (
+    <BrowserRouter>
+      <ShellRoutes />
+    </BrowserRouter>
+  )
 }
 
 export default App

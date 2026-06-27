@@ -1,0 +1,56 @@
+:root {
+  color-scheme: light;
+
+  --color-canvas: #f4f7f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8faf9;
+  --color-surface-muted: #eef3f0;
+  --color-border: #dfe6e2;
+  --color-border-strong: #c7d2cc;
+
+  --color-ink: #14251f;
+  --color-ink-secondary: #52625b;
+  --color-ink-muted: #7d8b85;
+  --color-ink-faint: #9ca7a2;
+
+  --color-clinical-950: #102f26;
+  --color-clinical-900: #153b30;
+  --color-clinical-800: #1e4b3d;
+  --color-clinical-700: #27624d;
+  --color-clinical-100: #dff1e8;
+  --color-clinical-50: #eff8f4;
+
+  --color-accent: #eb6738;
+  --color-accent-hover: #d95629;
+  --color-accent-soft: #fff0e9;
+  --color-success: #168357;
+  --color-success-soft: #e4f5ec;
+  --color-warning-soft: #fff7f2;
+
+  --font-sans: 'Manrope Variable', 'Manrope', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 2px rgb(18 47 38 / 5%);
+  --shadow-floating: 0 12px 32px rgb(18 47 38 / 12%);
+  --focus-ring: 0 0 0 3px rgb(235 103 56 / 24%);
+
+  --rail-width: 58px;
+  --sidebar-width: 220px;
+  --topbar-height: 58px;
+  --workspace-header-height: 54px;
+  --mobile-nav-height: 66px;
+}
