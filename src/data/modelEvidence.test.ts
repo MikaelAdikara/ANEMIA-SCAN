@@ -1,15 +1,47 @@
 import { describe, expect, it } from 'vitest'
 
+import { MODEL_EVIDENCE } from './modelEvidence'
+
 describe('MODEL_EVIDENCE', () => {
-  it('preserves the verified headline metrics', async () => {
-    await expect(import('./modelEvidence')).resolves.toMatchObject({
-      MODEL_EVIDENCE: {
-        eye: { metrics: { rocAuc: 0.9451 } },
-        nail: { metrics: { rocAuc: 0.6209 } },
-        tabular: { metrics: { npv: 0.9586 } },
-        fusion: { metrics: { rocAuc: 0.8238 } },
-        external: { metrics: { overallAuc: 0.4401 } },
-      },
+  it('preserves every verified metric exactly', () => {
+    expect(MODEL_EVIDENCE.eye.metrics).toEqual({
+      rocAuc: 0.9451,
+      prAuc: 0.9678,
+      sensitivity: 0.875,
+      specificity: 0.814,
+      brier: 0.094,
+    })
+    expect(MODEL_EVIDENCE.nail.metrics).toEqual({
+      rocAuc: 0.6209,
+      prAuc: 0.7392,
+      sensitivity: 0.7778,
+      specificity: 0.3636,
+      brier: 0.241,
+    })
+    expect(MODEL_EVIDENCE.tabular.metrics).toEqual({
+      rocAuc: 0.6685,
+      prAuc: 0.1887,
+      sensitivity: 0.9037,
+      specificity: 0.2195,
+      npv: 0.9586,
+      ppv: 0.1023,
+      brier: 0.0785,
+    })
+    expect(MODEL_EVIDENCE.fusion.metrics).toEqual({
+      rocAuc: 0.8238,
+      prAuc: 0.9022,
+      sensitivity: 0.9062,
+      specificity: 0.4186,
+      npv: 0.75,
+      ppv: 0.6988,
+      brier: 0.2224,
+    })
+    expect(MODEL_EVIDENCE.external.metrics).toEqual({
+      overallAuc: 0.4401,
+      indiaAuc: 0.4905,
+      italyAuc: 0.2818,
+      sensitivity: 1,
+      specificity: 0,
     })
   })
 })
