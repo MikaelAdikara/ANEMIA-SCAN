@@ -54,31 +54,35 @@ export interface PregnantRiskForm extends CommonRiskForm {
 
 export type RiskForm = AdolescentRiskForm | PregnantRiskForm
 
-interface ScreeningRecordBase {
+interface ScreeningRecordBase<Form extends RiskForm> {
   id: AnonymousScreeningId
   siteId: string
   startedAt: IsoTimestamp
-  targetGroup: TargetGroup
-  riskForm: RiskForm
+  targetGroup: Form['targetGroup']
+  riskForm: Form
   imageQuality: Record<ImageModality, ImageQuality>
   followUpStatus: FollowUpStatus
 }
 
-export interface CompletedScreeningRecord extends ScreeningRecordBase {
-  completionState: 'completed'
-  completedAt: IsoTimestamp
-  durationSeconds: number
-  riskScore: number
-  riskLevel: RiskLevel
-}
+export type CompletedScreeningRecord<Form extends RiskForm = RiskForm> = Form extends RiskForm
+  ? ScreeningRecordBase<Form> & {
+      completionState: 'completed'
+      completedAt: IsoTimestamp
+      durationSeconds: number
+      riskScore: number
+      riskLevel: RiskLevel
+    }
+  : never
 
-export interface IncompleteScreeningRecord extends ScreeningRecordBase {
-  completionState: 'incomplete'
-  completedAt?: never
-  durationSeconds?: never
-  riskScore?: never
-  riskLevel?: never
-}
+export type IncompleteScreeningRecord<Form extends RiskForm = RiskForm> = Form extends RiskForm
+  ? ScreeningRecordBase<Form> & {
+      completionState: 'incomplete'
+      completedAt?: never
+      durationSeconds?: never
+      riskScore?: never
+      riskLevel?: never
+    }
+  : never
 
 export type ScreeningRecord = CompletedScreeningRecord | IncompleteScreeningRecord
 

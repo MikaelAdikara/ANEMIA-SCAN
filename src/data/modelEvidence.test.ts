@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
+import type {
+  AdolescentRiskForm,
+  PregnantRiskForm,
+  ScreeningRecord,
+} from '../domain/types'
 import { DEMO_DATA_LABEL, DEMO_SCREENINGS } from './demoScreenings'
 import { MODEL_EVIDENCE, MODEL_EVIDENCE_CAVEATS } from './modelEvidence'
 
@@ -101,6 +106,14 @@ describe('MODEL_EVIDENCE', () => {
 })
 
 describe('demo screenings', () => {
+  it('couples each target group to its risk form at compile time', () => {
+    type AdolescentScreeningRecord = Extract<ScreeningRecord, { targetGroup: 'adolescent' }>
+    type PregnantScreeningRecord = Extract<ScreeningRecord, { targetGroup: 'pregnant' }>
+
+    expectTypeOf<AdolescentScreeningRecord['riskForm']>().toEqualTypeOf<AdolescentRiskForm>()
+    expectTypeOf<PregnantScreeningRecord['riskForm']>().toEqualTypeOf<PregnantRiskForm>()
+  })
+
   it('uses the stable synthetic-data label', () => {
     expect(DEMO_DATA_LABEL).toBe('Data demo sintetis')
   })

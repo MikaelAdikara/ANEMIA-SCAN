@@ -1,7 +1,9 @@
 import type {
+  AdolescentRiskForm,
   FollowUpStatus,
   ImageQuality,
   IsoTimestamp,
+  PregnantRiskForm,
   RiskForm,
   RiskLevel,
   ScreeningRecord,
@@ -416,6 +418,16 @@ const DEMO_SCREENING_SEEDS = [
 ] as const satisfies readonly DemoScreeningSeed[]
 
 function createRiskForm(
+  targetGroup: 'adolescent',
+  riskLevel: RiskLevel,
+  index: number,
+): AdolescentRiskForm
+function createRiskForm(
+  targetGroup: 'pregnant',
+  riskLevel: RiskLevel,
+  index: number,
+): PregnantRiskForm
+function createRiskForm(
   targetGroup: TargetGroup,
   riskLevel: RiskLevel,
   index: number,
@@ -467,8 +479,6 @@ export const DEMO_SCREENINGS: readonly ScreeningRecord[] = DEMO_SCREENING_SEEDS.
       id: `SCR-${String(index + 1).padStart(4, '0')}` as const,
       siteId: seed.siteId,
       startedAt: seed.startedAt,
-      targetGroup: seed.targetGroup,
-      riskForm: createRiskForm(seed.targetGroup, riskFormPattern, index),
       imageQuality: {
         eye: seed.eyeQuality,
         nail: seed.nailQuality,
@@ -476,15 +486,45 @@ export const DEMO_SCREENINGS: readonly ScreeningRecord[] = DEMO_SCREENING_SEEDS.
       followUpStatus: seed.followUpStatus,
     }
 
+    if (seed.targetGroup === 'adolescent') {
+      const groupRecord = {
+        ...commonRecord,
+        targetGroup: seed.targetGroup,
+        riskForm: createRiskForm(seed.targetGroup, riskFormPattern, index),
+      }
+
+      if (seed.completionState === 'incomplete') {
+        return {
+          ...groupRecord,
+          completionState: seed.completionState,
+        }
+      }
+
+      return {
+        ...groupRecord,
+        completionState: seed.completionState,
+        completedAt: seed.completedAt,
+        durationSeconds: seed.durationSeconds,
+        riskScore: seed.riskScore,
+        riskLevel: seed.riskLevel,
+      }
+    }
+
+    const groupRecord = {
+      ...commonRecord,
+      targetGroup: seed.targetGroup,
+      riskForm: createRiskForm(seed.targetGroup, riskFormPattern, index),
+    }
+
     if (seed.completionState === 'incomplete') {
       return {
-        ...commonRecord,
+        ...groupRecord,
         completionState: seed.completionState,
       }
     }
 
     return {
-      ...commonRecord,
+      ...groupRecord,
       completionState: seed.completionState,
       completedAt: seed.completedAt,
       durationSeconds: seed.durationSeconds,
