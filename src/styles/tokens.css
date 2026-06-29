@@ -1,56 +1,95 @@
 :root {
   color-scheme: light;
 
-  --color-canvas: #f4f7f5;
+  /* ── Canvas & surfaces ─────────────────────────────────────────────────── */
+  --color-canvas: #f1f4f2;
   --color-surface: #ffffff;
-  --color-surface-subtle: #f8faf9;
-  --color-surface-muted: #eef3f0;
-  --color-border: #dfe6e2;
-  --color-border-strong: #c7d2cc;
+  --color-surface-subtle: #f7faf8;
+  --color-surface-muted: #edf2ee;
+  --color-surface-overlay: rgb(14 32 24 / 5%);
 
-  --color-ink: #14251f;
-  --color-ink-secondary: #52625b;
-  --color-ink-muted: #7d8b85;
-  --color-ink-faint: #9ca7a2;
+  /* ── Borders ───────────────────────────────────────────────────────────── */
+  --color-border: #dfe8e3;
+  --color-border-strong: #c2d0c9;
 
-  --color-clinical-950: #102f26;
-  --color-clinical-900: #153b30;
-  --color-clinical-800: #1e4b3d;
-  --color-clinical-700: #27624d;
-  --color-clinical-100: #dff1e8;
-  --color-clinical-50: #eff8f4;
+  /* ── Ink (text) ────────────────────────────────────────────────────────── */
+  --color-ink: #0d1e17;
+  --color-ink-secondary: #48605a;
+  --color-ink-muted: #718079;
+  --color-ink-faint: #96a49d;
 
-  --color-accent: #eb6738;
-  --color-accent-hover: #d95629;
-  --color-accent-soft: #fff0e9;
-  --color-success: #168357;
-  --color-success-soft: #e4f5ec;
-  --color-warning-soft: #fff7f2;
+  /* ── Clinical green (brand) ────────────────────────────────────────────── */
+  --color-clinical-950: #0a2218;
+  --color-clinical-900: #133529;
+  --color-clinical-800: #1b4438;
+  --color-clinical-750: #225848;
+  --color-clinical-700: #276050;
+  --color-clinical-600: #347a62;
+  --color-clinical-200: #bfe0d2;
+  --color-clinical-100: #d9eee3;
+  --color-clinical-50:  #edf7f2;
 
-  --font-sans: 'Manrope Variable', 'Manrope', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
+  /* ── Accent (coral-orange) ─────────────────────────────────────────────── */
+  --color-accent: #e8622f;
+  --color-accent-hover: #d4501f;
+  --color-accent-vivid: #f07040;
+  --color-accent-soft: #fff0e8;
+  --color-accent-subtle: #fdf5f0;
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
+  /* ── Status ────────────────────────────────────────────────────────────── */
+  --color-success: #177a52;
+  --color-success-soft: #e1f5ec;
+  --color-warning: #b45309;
+  --color-warning-soft: #fff8ed;
+  --color-error: #c0392b;
+  --color-error-soft: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-soft: #eff6ff;
 
+  /* ── Typography ────────────────────────────────────────────────────────── */
+  --font-sans: 'Manrope Variable', 'Manrope', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Cascadia Code', 'Menlo', monospace;
+
+  /* ── Spacing (4-pt grid) ───────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Radii ─────────────────────────────────────────────────────────────── */
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-full: 999px;
 
-  --shadow-sm: 0 1px 2px rgb(18 47 38 / 5%);
-  --shadow-floating: 0 12px 32px rgb(18 47 38 / 12%);
-  --focus-ring: 0 0 0 3px rgb(235 103 56 / 24%);
+  /* ── Shadow scale ──────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 5%);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 7%), 0 1px 2px rgb(0 0 0 / 4%);
+  --shadow-md: 0 4px 8px -1px rgb(0 0 0 / 8%), 0 2px 4px -2px rgb(0 0 0 / 5%);
+  --shadow-lg: 0 10px 20px -4px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 5%);
+  --shadow-floating: 0 24px 48px -8px rgb(13 30 23 / 20%);
+  --shadow-inset: inset 0 1px 3px rgb(0 0 0 / 7%);
 
+  /* ── Focus ─────────────────────────────────────────────────────────────── */
+  --focus-ring: 0 0 0 3px rgb(232 98 47 / 22%);
+
+  /* ── Transitions ───────────────────────────────────────────────────────── */
+  --t-fast: 100ms ease;
+  --t-base: 160ms ease;
+  --t-slow: 260ms ease;
+  --t-spring: 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Layout geometry ───────────────────────────────────────────────────── */
   --rail-width: 58px;
-  --sidebar-width: 220px;
-  --topbar-height: 58px;
-  --workspace-header-height: 54px;
-  --mobile-nav-height: 66px;
+  --sidebar-width: 226px;
+  --topbar-height: 56px;
+  --workspace-header-height: 50px;
+  --mobile-nav-height: 64px;
 }

@@ -12,6 +12,12 @@ function aucDisplay(value: number) {
   return value.toFixed(4)
 }
 
+function aucColor(auc: number): string {
+  if (auc >= 0.8) return 'var(--color-clinical-700, #1e8449)'
+  if (auc >= 0.6) return '#d68910'
+  return '#c0392b'
+}
+
 const ROLE_LABEL: Record<string, string> = {
   'primary internal visual signal': 'Sinyal Visual Utama',
   'supporting signal': 'Sinyal Pendukung',
@@ -34,18 +40,24 @@ export function EvidencePage() {
   const external = MODEL_EVIDENCE.external
 
   return (
-    <div className="stack">
-      {/* Page header */}
-      <div className="page-header">
-        <h1 className="page-title">Bukti Penelitian Model</h1>
-        <p className="page-subtitle">
-          Ringkasan kinerja dan validasi model skrining anemia — bukan diagnosis medis.
-          Diperlukan validasi lokal Indonesia sebelum penggunaan klinis.
-        </p>
-      </div>
+    <div className="page page-in">
+      {/* Page heading */}
+      <header className="page-heading">
+        <div>
+          <span className="eyebrow">Insight / Bukti Model</span>
+          <h1>Kinerja Model</h1>
+          <p style={{ margin: 0, color: 'var(--color-ink-secondary)', fontSize: '0.9rem' }}>
+            Ringkasan kinerja dan validasi model skrining anemia berbasis gambar dan data klinis.
+          </p>
+        </div>
+        <span className="page-heading__status">Prototipe Riset</span>
+      </header>
 
-      {/* Domain-shift warning banner */}
-      <div className="alert alert-warning" style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      {/* External stress test danger banner */}
+      <div
+        className="alert alert-danger"
+        style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 'var(--space-5)' }}
+      >
         <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <strong>Peringatan Domain Shift Eksternal</strong>
@@ -59,8 +71,15 @@ export function EvidencePage() {
         </div>
       </div>
 
-      {/* Model metric cards */}
-      <div className="grid-2">
+      {/* Model metric cards — auto-fill grid handles 5 cards gracefully */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: 'var(--space-4)',
+          marginBottom: 'var(--space-6)',
+        }}
+      >
         {MODEL_KEYS.map((key) => {
           const m = MODEL_EVIDENCE[key]
           const auc =
@@ -70,65 +89,80 @@ export function EvidencePage() {
               ? m.metrics.rocAuc
               : undefined
 
+          const npv = 'npv' in m.metrics && m.metrics.npv != null ? m.metrics.npv : undefined
+
           return (
             <div className="card" key={key}>
-              <div className="card-header" style={{ flexWrap: 'wrap', gap: 6 }}>
+              {/* Card header: name + role badge */}
+              <div className="card-header" style={{ flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 <span className="card-title">{m.name}</span>
                 <span className="badge badge-info">{ROLE_LABEL[m.role] ?? m.role}</span>
               </div>
 
-              {/* AUC prominent display */}
+              {/* Validation design badge */}
+              <div style={{ marginBottom: 10 }}>
+                <span
+                  className="badge"
+                  style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-ink-secondary)',
+                    fontSize: '0.72rem',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {DESIGN_LABEL[m.validation.design] ?? m.validation.design}
+                  {' — '}
+                  {m.validation.dataset}
+                </span>
+              </div>
+
+              {/* ROC-AUC prominent display */}
               {auc != null && (
-                <div style={{ margin: '8px 0' }}>
-                  <span className="label">ROC-AUC</span>
+                <div style={{ marginBottom: 12 }}>
+                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-muted)', fontWeight: 600 }}>
+                    ROC-AUC
+                  </span>
                   <p
                     style={{
-                      fontSize: '1.75rem',
-                      fontWeight: 700,
+                      fontSize: '2.2rem',
+                      fontWeight: 800,
                       margin: '2px 0 0',
-                      color: auc >= 0.8 ? '#1e8449' : auc >= 0.6 ? '#d68910' : '#c0392b',
+                      lineHeight: 1,
+                      color: aucColor(auc),
                     }}
                   >
                     {aucDisplay(auc)}
                   </p>
+
+                  {/* AUC progress bar */}
+                  <div className="progress-bar-track" style={{ marginTop: 8 }}>
+                    <div
+                      className="progress-bar-fill"
+                      style={{
+                        width: `${Math.min(auc * 100, 100)}%`,
+                        background: aucColor(auc),
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Sensitivity / Specificity */}
-              <div className="row" style={{ gap: 20, flexWrap: 'wrap', marginTop: 4 }}>
-                <div>
-                  <span className="label">Sensitivitas</span>
-                  <p style={{ margin: '2px 0 0', fontWeight: 600 }}>
-                    {pct(m.metrics.sensitivity)}
-                  </p>
-                </div>
-                <div>
-                  <span className="label">Spesifisitas</span>
-                  <p style={{ margin: '2px 0 0', fontWeight: 600 }}>
-                    {pct(m.metrics.specificity)}
-                  </p>
-                </div>
-                {'npv' in m.metrics && m.metrics.npv != null && (
-                  <div>
-                    <span className="label">NPV</span>
-                    <p style={{ margin: '2px 0 0', fontWeight: 600 }}>
-                      {pct(m.metrics.npv)}
-                    </p>
-                  </div>
-                )}
-              </div>
-
               {/* External AUC breakdown (only for external key) */}
               {key === 'external' && (
-                <div className="row" style={{ gap: 20, flexWrap: 'wrap', marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 10 }}>
                   <div>
-                    <span className="label">AUC India</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-muted)', fontWeight: 600 }}>
+                      AUC India
+                    </span>
                     <p style={{ margin: '2px 0 0', fontWeight: 600 }}>
                       {aucDisplay(external.metrics.indiaAuc ?? 0)}
                     </p>
                   </div>
                   <div>
-                    <span className="label">AUC Italia</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-ink-muted)', fontWeight: 600 }}>
+                      AUC Italia
+                    </span>
                     <p style={{ margin: '2px 0 0', fontWeight: 600 }}>
                       {aucDisplay(external.metrics.italyAuc ?? 0)}
                     </p>
@@ -136,13 +170,22 @@ export function EvidencePage() {
                 </div>
               )}
 
-              {/* Validation design */}
-              <div style={{ marginTop: 10 }}>
-                <span className="label">Desain Validasi</span>
-                <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
-                  {DESIGN_LABEL[m.validation.design] ?? m.validation.design} —{' '}
-                  {m.validation.dataset}
-                </p>
+              {/* Stat rows */}
+              <div className="stack-sm">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)' }}>Sensitivitas</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{pct(m.metrics.sensitivity)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)' }}>Spesifisitas</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{pct(m.metrics.specificity)}</span>
+                </div>
+                {npv != null && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)' }}>NPV</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{pct(npv)}</span>
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -150,31 +193,32 @@ export function EvidencePage() {
       </div>
 
       {/* Caveats */}
-      <div className="card">
-        <div className="card-header">
-          <AlertTriangle size={16} style={{ color: '#d68910' }} />
-          <span className="card-title">Catatan Penting</span>
-        </div>
-        <div className="stack" style={{ gap: 8 }}>
-          {MODEL_EVIDENCE_CAVEATS.map((caveat, i) => (
-            <div className="alert alert-warning" key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 2 }} />
-              <p style={{ margin: 0 }}>{caveat}</p>
-            </div>
-          ))}
-        </div>
-        <p
-          style={{
-            marginTop: 12,
-            fontSize: '0.8rem',
-            color: '#6b7280',
-            fontStyle: 'italic',
-          }}
-        >
-          Hasil skrining ini <strong>bukan diagnosis</strong> medis. Validasi lokal Indonesia
-          wajib dilakukan sebelum penggunaan klinis apa pun.
-        </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginTop: 'var(--space-5)' }}>
+        {MODEL_EVIDENCE_CAVEATS.slice(0, 3).map((caveat, i) => (
+          <div
+            className="alert alert-warning"
+            key={i}
+            style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}
+          >
+            <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 2, color: '#d68910' }} />
+            <p style={{ margin: 0 }}>{caveat}</p>
+          </div>
+        ))}
       </div>
+
+      {/* Footer */}
+      <p
+        style={{
+          fontSize: '0.78rem',
+          color: 'var(--color-ink-muted)',
+          fontStyle: 'italic',
+          margin: 'var(--space-4) 0 0',
+          paddingTop: 4,
+        }}
+      >
+        Diperlukan <strong>validasi lokal Indonesia</strong> sebelum penggunaan klinis apa pun.
+        Hasil skrining ini <strong>bukan diagnosis medis</strong>.
+      </p>
     </div>
   )
 }

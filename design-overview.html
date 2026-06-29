@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ANEMIA-SCAN · Design Overview</title>
+<style>
+  :root {
+    --clinical: #153b30;
+    --clinical-dark: #102f26;
+    --clinical-mid: #27624d;
+    --clinical-light: #dff1e8;
+    --clinical-50: #eff8f4;
+    --accent: #eb6738;
+    --accent-soft: #fff0e9;
+    --success: #168357;
+    --success-soft: #e4f5ec;
+    --warning: #d97706;
+    --warning-soft: #fff7ed;
+    --danger: #c0392b;
+    --danger-soft: #fef2f2;
+    --canvas: #f4f7f5;
+    --surface: #ffffff;
+    --border: #dfe6e2;
+    --ink: #14251f;
+    --ink2: #52625b;
+    --ink3: #7d8b85;
+    --mono: 'Courier New', monospace;
+    --sans: system-ui, -apple-system, sans-serif;
+    --risk-low: #1e8449;
+    --risk-mod: #d68910;
+    --risk-hi: #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: #e8eceb;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  /* ── Page layout ─────────────────────────────────── */
+  .doc {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* ── Cover ──────────────────────────────────────── */
+  .cover {
+    background: var(--clinical-dark);
+    border-radius: 16px;
+    padding: 48px 56px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .cover h1 {
+    color: #fff;
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover p { color: #a7c2b7; font-size: 14px; margin-top: 10px; max-width: 520px; }
+  .cover-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .cover-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .chip-accent { background: var(--accent); color: #fff; }
+  .chip-light { background: rgba(255,255,255,0.12); color: #fff; }
+  .chip-green { background: var(--clinical-mid); color: #b7d4c3; }
+
+  /* ── Section ─────────────────────────────────────── */
+  .section { margin-bottom: 56px; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Grid helpers ────────────────────────────────── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .col-span2 { grid-column: span 2; }
+  @media(max-width:1100px) {
+    .g3 { grid-template-columns: 1fr 1fr; }
+    .g4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media(max-width:700px) {
+    .g2,.g3,.g4 { grid-template-columns: 1fr; }
+    .col-span2 { grid-column: span 1; }
+  }
+
+  /* ── Screen frame ────────────────────────────────── */
+  .screen {
+    background: var(--surface);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(18,47,38,0.12);
+    border: 1px solid var(--border);
+  }
+  .screen-label {
+    background: var(--clinical);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-dot { width:7px; height:7px; border-radius:50%; }
+
+  /* ── Shell chrome ─────────────────────────────────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 52px 200px 1fr;
+    grid-template-rows: 50px 1fr;
+    height: 520px;
+    overflow: hidden;
+    font-size: 11px;
+  }
+
+  .sh-topbar {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 14px;
+    box-shadow: 0 1px 3px rgba(18,47,38,0.06);
+  }
+  .sh-brand { font-weight: 800; font-size: 13px; color: var(--clinical-dark); }
+  .sh-brand span { color: var(--accent); }
+  .sh-search {
+    flex: 1; max-width: 340px; height: 28px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: #f8faf9; display: flex; align-items: center;
+    padding: 0 10px; gap: 6px; color: var(--ink3); font-size: 11px;
+  }
+  .sh-utils { margin-left: auto; display: flex; gap: 6px; }
+  .sh-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--ink2);
+  }
+  .sh-avatar { background: var(--clinical); color: #fff; font-size: 9px; font-weight:700; font-family:var(--mono); }
+
+  .sh-rail {
+    grid-row: 2;
+    background: var(--clinical);
+    display: flex; flex-direction: column;
+    align-items: center; padding: 10px 0; gap: 4px;
+  }
+  .sh-rail-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .sh-nav-item {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #a7c2b7;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .sh-nav-item.active {
+    background: #27624d; color: #fff;
+  }
+  .sh-nav-item.active::before {
+    content: '';
+    position: absolute; left: -7px;
+    width: 3px; height: 16px;
+    border-radius: 0 3px 3px 0;
+    background: #ff9169;
+  }
+
+  .sh-sidebar {
+    grid-row: 2;
+    border-right: 1px solid var(--border);
+    background: #fbfcfb;
+    padding: 14px 10px;
+    display: flex; flex-direction: column; gap: 0;
+    overflow: hidden;
+  }
+  .sh-site {
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .sh-site-mark {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--clinical-light); color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 9px; font-weight: 700; flex-shrink: 0;
+  }
+  .sh-site strong { display: block; font-size: 11px; }
+  .sh-site small { display: block; color: var(--ink3); font-size: 9px; }
+  .sh-nav-group-label {
+    font-family: var(--mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: #9ca7a2; margin: 0 0 6px 8px;
+  }
+  .sh-nav-link {
+    display: flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 8px; border-radius: 6px;
+    color: var(--ink2); font-size: 11px; margin-bottom: 1px;
+  }
+  .sh-nav-link.active {
+    background: #eaf1ed; color: var(--clinical); font-weight: 700;
+  }
+  .sh-nav-link:hover { background: #eef3f0; }
+  .sh-nav-link .icon { font-size: 13px; }
+
+  .sh-workspace {
+    grid-row: 2;
+    display: grid;
+    grid-template-rows: 44px 1fr;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .sh-ws-header {
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: stretch;
+    padding: 0 20px; gap: 28px;
+  }
+  .sh-ws-tab {
+    display: flex; align-items: center;
+    border-bottom: 2px solid transparent;
+    font-size: 11px; color: var(--ink3);
+    padding-bottom: 1px;
+  }
+  .sh-ws-tab.active { border-color: var(--accent); color: var(--clinical-dark); font-weight: 700; }
+  .sh-ws-status {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+  }
+  .sh-status-pill {
+    padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px;
+    font-size: 9px; color: var(--ink2); font-family: var(--mono);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #26b974; }
+  .sh-ws-main {
+    overflow: auto; padding: 20px;
+    background: #f8faf9;
+  }
+
+  /* ── Card ─────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(18,47,38,0.05);
+  }
+  .card-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .card + .card { margin-top: 12px; }
+
+  /* ── Badges ───────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 999px;
+    font-family: var(--mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .b-low { background: #e9f7ef; color: var(--risk-low); }
+  .b-mod { background: #fef9e7; color: var(--risk-mod); }
+  .b-hi { background: #fdedec; color: var(--risk-hi); }
+  .b-info { background: #ebf5fb; color: #2471a3; }
+  .b-accent { background: var(--accent-soft); color: var(--accent); }
+  .b-demo { background: #f0e6ff; color: #7c3aed; }
+  .b-clinical { background: var(--clinical-light); color: var(--clinical); }
+
+  /* ── KPI card ─────────────────────────────────────── */
+  .kpi { padding: 14px 16px; }
+  .kpi-label { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; font-family: var(--mono); }
+  .kpi-value { font-size: 26px; font-weight: 800; color: var(--clinical-dark); line-height: 1; }
+  .kpi-sub { font-size: 10px; color: var(--ink3); margin-top: 5px; }
+
+  /* ── Progress bar ─────────────────────────────────── */
+  .prog-track { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+  .prog-fill { height: 100%; border-radius: 999px; }
+
+  /* ── Mini chart (SVG) ─────────────────────────────── */
+  .chart-area { width: 100%; }
+
+  /* ── Alert ────────────────────────────────────────── */
+  .alert {
+    padding: 8px 12px; border-radius: 7px; font-size: 11px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .al-warn { background: var(--warning-soft); color: #92400e; border-left: 3px solid var(--warning); }
+  .al-danger { background: var(--danger-soft); color: #7f1d1d; border-left: 3px solid var(--danger); }
+  .al-success { background: var(--success-soft); color: #14532d; border-left: 3px solid var(--success); }
+  .al-info { background: #eff6ff; color: #1e3a5f; border-left: 3px solid #3b82f6; }
+
+  /* ── Button ───────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 7px;
+    font-size: 11px; font-weight: 600; cursor: pointer; border: none;
+  }
+  .btn-primary { background: var(--clinical); color: #fff; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--ink2); }
+  .btn-sm { padding: 4px 10px; font-size: 10px; }
+
+  /* ── Form ─────────────────────────────────────────── */
+  .form-group { margin-bottom: 10px; }
+  .form-label { font-size: 10px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
+  .form-input, .form-select {
+    width: 100%; padding: 6px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 11px; color: var(--ink);
+    background: var(--surface);
+  }
+  .checkbox-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--ink2); margin-bottom: 6px; }
+  .checkbox-row input[type=checkbox] { accent-color: var(--clinical); }
+
+  /* ── Camera placeholder ────────────────────────────── */
+  .camera-ph {
+    width: 100%; height: 120px;
+    border-radius: 8px; border: 2px dashed var(--border);
+    background: #f8faf9;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px; color: var(--ink3); font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .camera-ph span { font-size: 10px; font-family: var(--mono); }
+
+  /* ── Quality bars ─────────────────────────────────── */
+  .qual-row { margin-bottom: 8px; }
+  .qual-label-row { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 10px; color: var(--ink2); }
+
+  /* ── Risk result ─────────────────────────────────── */
+  .risk-result {
+    border-radius: 10px; padding: 14px 16px;
+    border-left: 4px solid;
+    margin-bottom: 12px;
+  }
+  .risk-low { border-color: var(--risk-low); background: #f0faf4; }
+  .risk-mod { border-color: var(--risk-mod); background: #fffbf0; }
+  .risk-hi { border-color: var(--risk-hi); background: #fff5f5; }
+  .risk-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .risk-low .risk-title { color: var(--risk-low); }
+  .risk-mod .risk-title { color: var(--risk-mod); }
+  .risk-hi .risk-title { color: var(--risk-hi); }
+
+  /* ── Contribution ─────────────────────────────────── */
+  .contrib-row { margin-bottom: 7px; }
+  .contrib-header { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
+  .contrib-label { color: var(--ink2); }
+  .contrib-val { font-family: var(--mono); font-weight: 700; }
+
+  /* ── Table ────────────────────────────────────────── */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .mini-table th { background: #f8faf9; color: var(--ink3); font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .mini-table td { padding: 7px 10px; border-bottom: 1px solid #f0f4f2; vertical-align: middle; }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table tr:hover td { background: #f8faf9; }
+
+  /* ── Model evidence card ─────────────────────────── */
+  .model-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .model-card-head {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    background: #fbfcfb;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 8px;
+  }
+  .model-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .model-role { font-size: 9px; color: var(--ink3); margin-top: 2px; }
+  .model-auc { font-family: var(--mono); font-size: 22px; font-weight: 800; line-height: 1; }
+  .auc-eye { color: var(--risk-low); }
+  .auc-nail { color: var(--risk-mod); }
+  .auc-tab { color: var(--risk-mod); }
+  .auc-fus { color: var(--risk-mod); }
+  .auc-ext { color: var(--risk-hi); }
+  .model-card-body { padding: 10px 14px; }
+  .model-stat { display: flex; justify-content: space-between; font-size: 10px; color: var(--ink2); margin-bottom: 4px; }
+  .model-stat strong { font-family: var(--mono); color: var(--ink); }
+
+  /* ── Mobile frame ─────────────────────────────────── */
+  .mobile-frame {
+    width: 280px;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(18,47,38,0.18);
+    border: 8px solid #1a1a1a;
+    background: var(--surface);
+    position: relative;
+  }
+  .mobile-notch {
+    height: 28px; background: #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mobile-notch-pill { width: 60px; height: 18px; background: #000; border-radius: 999px; }
+  .mobile-screen { height: 560px; overflow: hidden; }
+  .mobile-topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    height: 44px; display: flex; align-items: center; padding: 0 12px;
+    font-size: 13px; font-weight: 800; color: var(--clinical-dark);
+    justify-content: space-between;
+  }
+  .mobile-content { padding: 12px; background: #f8faf9; height: calc(560px - 44px - 54px); overflow: hidden; }
+  .mobile-nav-bar {
+    height: 54px; border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+  }
+  .mnav-item {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 2px; font-size: 8px; font-weight: 600;
+    color: var(--ink3);
+  }
+  .mnav-item.active { color: var(--clinical); }
+  .mnav-icon { font-size: 16px; }
+
+  /* ── Design tokens section ────────────────────────── */
+  .color-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .color-chip { width: 52px; }
+  .color-swatch { width: 52px; height: 36px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06); }
+  .color-name { font-family: var(--mono); font-size: 8px; color: var(--ink3); margin-top: 4px; text-align: center; }
+
+  /* ── Typography preview ───────────────────────────── */
+  .type-row { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: none; }
+
+  /* ── Step indicator ───────────────────────────────── */
+  .steps { display: flex; align-items: center; gap: 0; margin-bottom: 14px; }
+  .step {
+    flex: 1; height: 3px;
+    border-radius: 999px;
+    margin-right: 4px;
+  }
+  .step.done { background: var(--success); }
+  .step.active { background: var(--accent); }
+  .step.todo { background: var(--border); }
+  .step-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink3); margin-bottom: 12px; }
+  .step-labels span.active { color: var(--accent); font-weight: 700; }
+
+  /* ── Context nav sub-items ────────────────────────── */
+  .sub-item {
+    display: flex; align-items: center; gap: 8px;
+    height: 30px; padding: 0 8px; border-radius: 5px;
+    font-size: 10px; color: var(--ink2);
+  }
+  .sub-item.active { background: #eaf1ed; color: var(--clinical); font-weight: 700; }
+
+  /* ── Dashboard chart area ─────────────────────────── */
+  .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .chart-title { font-size: 11px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
+
+  /* ── Stepper ─────────────────────────────────────── */
+  .stepper { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .stepper-tab {
+    padding: 8px 14px; font-size: 10px; font-weight: 600;
+    color: var(--ink3); border-bottom: 2px solid transparent;
+    display: flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+  }
+  .stepper-tab.active { color: var(--clinical); border-color: var(--accent); }
+  .stepper-tab.done { color: var(--success); }
+  .tab-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .spacer { flex: 1; }
+
+  .eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
+  h2.screen-title { font-size: 20px; font-weight: 800; color: var(--clinical-dark); margin-bottom: 4px; }
+  h2.screen-title + p { color: var(--ink3); font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ═══════════════════════ COVER ══════════════════════════ -->
+  <div class="cover">
+    <div>
+      <h1>ANEMIA<span>·SCAN</span><br/>Design Overview</h1>
+      <p>Referensi visual lengkap semua layar, komponen, dan token desain — prototipe skrining anemia berbasis kamera dan formulir risiko.</p>
+    </div>
+    <div class="cover-meta">
+      <span class="cover-chip chip-accent">Prototipe Riset</span>
+      <span class="cover-chip chip-green">React + TypeScript</span>
+      <span class="cover-chip chip-light">v0.1.0 · 2026-06-27</span>
+      <span class="cover-chip chip-light">Bukan Diagnosis Medis</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 1. APP SHELL — DESKTOP ══════════════════════ -->
+  <div class="section">
+    <div class="section-label">01 · App Shell · Layout desktop (1440px)</div>
+    <div class="screen">
+      <div class="screen-label">
+        <span class="screen-dot" style="background:#ff5f57"></span>
+        <span class="screen-dot" style="background:#febc2e"></span>
+        <span class="screen-dot" style="background:#28c840"></span>
+        ANEMIA-SCAN · Desktop Shell · 1440×900
+      </div>
+      <div class="shell">
+        <!-- Topbar -->
+        <div class="sh-topbar">
+          <div class="sh-brand">ANEMIA<span>·SCAN</span></div>
+          <div class="sh-search">🔍 <span>Cari skrining, ID peserta, atau lokasi</span> <span style="margin-left:auto;font-family:var(--mono);font-size:9px;background:var(--surface);border:1px solid var(--border);padding:2px 5px;border-radius:4px;color:var(--ink3)">Ctrl K</span></div>
+          <div class="sh-utils">
+            <div class="sh-btn">❓</div>
+            <div class="sh-btn">🔔</div>
+            <div class="sh-btn sh-avatar">MR</div>
+          </div>
+        </div>
+        <!-- Icon rail -->
+        <div class="sh-rail">
+          <div class="sh-rail-mark">AS</div>
+          <div class="sh-nav-item active" title="Skrining baru">🩺</div>
+          <div class="sh-nav-item" title="Data wilayah">📍</div>
+          <div class="sh-nav-item" title="Riwayat">🕐</div>
+          <div class="sh-nav-item" title="Kinerja model">📊</div>
+          <div style="margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div class="sh-nav-item" title="Bantuan">❓</div>
+            <div class="sh-nav-item" title="Pengaturan">⚙️</div>
+          </div>
+        </div>
+        <!-- Sidebar -->
+        <div class="sh-sidebar">
+          <div class="sh-site">
+            <div class="sh-site-mark">PM</div>
+            <span>
+              <strong>Posyandu Melati</strong>
+              <small>Wilayah Puskesmas</small>
+            </span>
+          </div>
+          <div class="sh-nav-group-label">Workspace</div>
+          <div class="sub-item active">🩺 <span>Skrining baru</span></div>
+          <div class="sub-item">🕐 <span>Riwayat</span></div>
+          <div class="sub-item">📋 <span>Antrean rujukan</span></div>
+          <div style="margin-top:14px;"></div>
+          <div class="sh-nav-group-label">Insight</div>
+          <div class="sub-item">📍 <span>Data wilayah</span></div>
+          <div class="sub-item">📈 <span>Kinerja model</span></div>
+          <div class="sub-item">💾 <span>Kualitas data</span></div>
+          <div style="margin-top:auto;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);">
+            <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:3px;">Lokasi aktif</div>
+            <div style="font-size:11px;font-weight:700;">Kel. Sukamaju</div>
+            <div style="font-size:9px;color:var(--ink3);">Mode demonstrasi lokal</div>
+          </div>
+        </div>
+        <!-- Workspace -->
+        <div class="sh-workspace">
+          <div class="sh-ws-header">
+            <div class="sh-ws-tab active">Pemeriksaan</div>
+            <div class="sh-ws-tab">Operasional</div>
+            <div class="sh-ws-tab">Bukti model</div>
+            <div class="sh-ws-status">
+              <div class="sh-status-pill"><span class="status-dot"></span>Sistem siap</div>
+              <button class="btn btn-primary btn-sm" style="font-size:10px;">Simpan draf</button>
+            </div>
+          </div>
+          <div class="sh-ws-main" style="display:grid;grid-template-columns:1.4fr 0.6fr;gap:14px;">
+            <!-- Left panel: screening layout preview -->
+            <div>
+              <div class="eyebrow" style="margin-bottom:6px;">Pemeriksaan / Baru</div>
+              <h2 class="screen-title" style="font-size:18px;">Skrining baru</h2>
+              <p style="font-size:10px;color:var(--ink3);margin-bottom:12px;">Siapkan peserta dan perangkat sebelum memulai alur pemeriksaan.</p>
+
+              <div class="stepper">
+                <div class="stepper-tab done">✔ Foto Mata <span class="tab-dot"></span></div>
+                <div class="stepper-tab done">✔ Foto Kuku <span class="tab-dot"></span></div>
+                <div class="stepper-tab active">📝 Formulir</div>
+                <div class="stepper-tab">📊 Hasil</div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="form-group">
+                  <label class="form-label">Kelompok sasaran</label>
+                  <select class="form-select"><option>Remaja putri</option><option>Ibu hamil</option></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Usia (tahun)</label>
+                  <input class="form-input" type="number" value="16" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Suplementasi zat besi</label>
+                <select class="form-select"><option>Kadang-kadang</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Gejala (2 dari 4)</label>
+                <div class="checkbox-row"><input type="checkbox" checked /> Mudah lelah</div>
+                <div class="checkbox-row"><input type="checkbox" checked /> Pusing / kepala ringan</div>
+                <div class="checkbox-row"><input type="checkbox" /> Sesak napas</div>
+                <div class="checkbox-row"><input type="checkbox" /> Pucat terlihat</div>
+              </div>
+            </div>
+            <!-- Right panel: readiness -->
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="card" style="padding:12px;">
+                <div class="card-title" style="margin-bottom:8px;">Status Modalitas</div>
+                <div style="display:flex;flex-direction:column;gap:5px;font-size:10px;">
+                  <div style="display:flex;align-items:center;gap:7px;color:var(--success)">✔ <span>Foto konjungtiva mata</span></div>
+                  <div style="display:flex;align-items:center;gap:7px;color:var(--success)">✔ <span>Foto kuku jari</span></div>
+                  <div style="display:flex;align-items:center;gap:7px;color:var(--ink3)"><span style="width:7px;height:7px;border:1px solid var(--border);border-radius:50%;display:inline-block;"></span><span>Formulir risiko</span></div>
+                </div>
+                <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+                  <button class="btn btn-accent" style="width:100%;justify-content:center;font-size:10px;" disabled>Hasilkan estimasi</button>
+                </div>
+              </div>
+              <div class="alert al-warn" style="font-size:10px;padding:8px 10px;">
+                ⚠️ ANEMIA-SCAN mendukung triase risiko dan tidak menggantikan pemeriksaan Hb atau keputusan tenaga kesehatan.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 2. SCREENING — 4 TABS ═══════════════════ -->
+  <div class="section">
+    <div class="section-label">02 · Halaman Skrining · Alur 4 langkah</div>
+    <div class="g4">
+      <!-- Tab 1: Foto Mata -->
+      <div class="screen">
+        <div class="screen-label">Tab 1 · Foto Mata</div>
+        <div style="padding:16px;background:#f8faf9;height:420px;overflow:hidden;">
+          <div class="stepper" style="margin-bottom:10px;">
+            <div class="stepper-tab active" style="padding:6px 8px;font-size:9px;">👁 Foto Mata</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">✋ Kuku</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">📝 Form</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">📊 Hasil</div>
+          </div>
+          <div class="card" style="padding:12px;">
+            <div class="card-hd" style="margin-bottom:8px;"><span class="card-title">Foto Konjungtiva Mata</span></div>
+            <div class="camera-ph" style="height:100px;">
+              📷
+              <span>Arahkan kamera ke mata</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+              <button class="btn btn-primary btn-sm" style="justify-content:center;font-size:10px;">📷 Buka Kamera</button>
+              <button class="btn btn-ghost btn-sm" style="font-size:10px;">⬆ Upload</button>
+            </div>
+          </div>
+          <div style="height:12px;"></div>
+          <div class="card" style="padding:12px;">
+            <div class="card-title" style="font-size:10px;margin-bottom:8px;">Panduan</div>
+            <div style="font-size:9px;color:var(--ink2);display:flex;flex-direction:column;gap:4px;">
+              <div>• Pastikan pencahayaan cukup terang</div>
+              <div>• Foto jarak dekat konjungtiva bawah</div>
+              <div>• Tahan kamera agar tidak goyang</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Foto Kuku (captured) -->
+      <div class="screen">
+        <div class="screen-label">Tab 2 · Foto Kuku (Captured)</div>
+        <div style="padding:16px;background:#f8faf9;height:420px;overflow:hidden;">
+          <div class="stepper" style="margin-bottom:10px;">
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Mata</div>
+            <div class="stepper-tab active" style="padding:6px 8px;font-size:9px;">✋ Foto Kuku</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">📝 Form</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">📊 Hasil</div>
+          </div>
+          <div class="card" style="padding:12px;">
+            <div class="card-hd" style="margin-bottom:8px;"><span class="card-title">Foto Kuku Jari</span><span class="badge b-info">Selesai</span></div>
+            <!-- Simulated captured image -->
+            <div style="width:100%;height:80px;border-radius:7px;background:linear-gradient(135deg,#f9c784,#e8a87c);margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:24px;">🤚</div>
+            <div class="alert al-success" style="font-size:9px;padding:6px 8px;margin-bottom:8px;">✔ Kualitas foto memenuhi syarat</div>
+            <!-- Quality bars -->
+            <div class="qual-row">
+              <div class="qual-label-row"><span>Kecerahan</span><span style="font-family:var(--mono);font-weight:700;color:var(--success)">78</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:78%;background:var(--success)"></div></div>
+            </div>
+            <div class="qual-row">
+              <div class="qual-label-row"><span>Kontras</span><span style="font-family:var(--mono);font-weight:700;color:var(--success)">65</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:65%;background:var(--success)"></div></div>
+            </div>
+            <div class="qual-row">
+              <div class="qual-label-row"><span>Ketajaman</span><span style="font-family:var(--mono);font-weight:700;color:var(--warning)">42</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:42%;background:var(--warning)"></div></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;font-size:10px;margin-top:6px;">↺ Ulangi Foto</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Formulir -->
+      <div class="screen">
+        <div class="screen-label">Tab 3 · Formulir Risiko</div>
+        <div style="padding:16px;background:#f8faf9;height:420px;overflow:hidden;">
+          <div class="stepper" style="margin-bottom:10px;">
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Mata</div>
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Kuku</div>
+            <div class="stepper-tab active" style="padding:6px 8px;font-size:9px;">📝 Formulir</div>
+            <div class="stepper-tab" style="padding:6px 8px;font-size:9px;color:var(--ink3)">📊 Hasil</div>
+          </div>
+          <div class="card" style="padding:12px;">
+            <div class="card-title" style="margin-bottom:10px;">Formulir Risiko</div>
+            <div class="form-group">
+              <label class="form-label">Kelompok sasaran</label>
+              <select class="form-select" style="font-size:10px;"><option>Remaja putri</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Suplementasi besi</label>
+              <select class="form-select" style="font-size:10px;"><option>Kadang-kadang</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Konsumsi protein hewani/minggu</label>
+              <select class="form-select" style="font-size:10px;"><option>1 porsi</option></select>
+            </div>
+            <label class="form-label">Gejala (2 dari 4)</label>
+            <div class="checkbox-row" style="font-size:10px;"><input type="checkbox" checked /> Mudah lelah</div>
+            <div class="checkbox-row" style="font-size:10px;"><input type="checkbox" checked /> Pusing</div>
+            <div class="checkbox-row" style="font-size:10px;"><input type="checkbox" /> Sesak napas</div>
+            <div style="margin-top:10px;">
+              <button class="btn btn-accent" style="width:100%;justify-content:center;font-size:10px;">📊 Hasilkan estimasi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Hasil -->
+      <div class="screen">
+        <div class="screen-label">Tab 4 · Hasil Estimasi</div>
+        <div style="padding:16px;background:#f8faf9;height:420px;overflow:hidden;">
+          <div class="stepper" style="margin-bottom:10px;">
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Mata</div>
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Kuku</div>
+            <div class="stepper-tab done" style="padding:6px 8px;font-size:9px;color:var(--success)">✔ Form</div>
+            <div class="stepper-tab active" style="padding:6px 8px;font-size:9px;">📊 Hasil</div>
+          </div>
+          <div class="risk-result risk-mod" style="padding:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <span style="font-size:18px;">📈</span>
+              <div>
+                <div class="risk-title" style="font-size:16px;">Risiko Sedang</div>
+                <div style="font-size:9px;color:var(--ink3);">Kepercayaan: Sedang</div>
+              </div>
+              <span class="badge b-mod" style="margin-left:auto;">MODERATE</span>
+            </div>
+            <div style="font-size:9px;color:#92400e;background:#fff7ed;padding:6px 8px;border-radius:6px;border-left:2px solid var(--warning);">
+              ⚠️ Estimasi prototipe — bukan diagnosis medis.
+            </div>
+          </div>
+          <div class="card" style="padding:12px;margin-top:8px;">
+            <div class="card-title" style="font-size:10px;margin-bottom:8px;">Kontribusi Faktor</div>
+            <div class="contrib-row">
+              <div class="contrib-header"><span class="contrib-label">Gejala klinis</span><span class="contrib-val" style="color:#e05a4e">18%</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:60%;background:#e05a4e"></div></div>
+            </div>
+            <div class="contrib-row">
+              <div class="contrib-header"><span class="contrib-label">Suplementasi besi</span><span class="contrib-val" style="color:#d68910">10%</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:33%;background:#d68910"></div></div>
+            </div>
+            <div class="contrib-row">
+              <div class="contrib-header"><span class="contrib-label">Sinyal visual</span><span class="contrib-val" style="color:#2471a3">12%</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:40%;background:#2471a3"></div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;font-size:9px;">💾 Simpan</button>
+            <button class="btn btn-ghost btn-sm" style="font-size:9px;">↺ Baru</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 3. DASHBOARD ════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">03 · Dashboard Monitoring</div>
+    <div class="g2">
+      <!-- Left: KPIs + Charts -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- KPIs -->
+        <div class="g4" style="grid-template-columns:repeat(4,1fr);">
+          <div class="screen kpi" style="border-left:3px solid var(--clinical)">
+            <div class="kpi-label">Total Skrining</div>
+            <div class="kpi-value">154</div>
+            <div class="kpi-sub">↑ 12% vs minggu lalu</div>
+          </div>
+          <div class="screen kpi" style="border-left:3px solid var(--risk-hi)">
+            <div class="kpi-label">Risiko Tinggi</div>
+            <div class="kpi-value" style="color:var(--risk-hi)">40</div>
+            <div class="kpi-sub">26% dari total</div>
+          </div>
+          <div class="screen kpi" style="border-left:3px solid var(--success)">
+            <div class="kpi-label">Tingkat Selesai</div>
+            <div class="kpi-value" style="color:var(--success)">87%</div>
+            <div class="kpi-sub">134 dari 154</div>
+          </div>
+          <div class="screen kpi" style="border-left:3px solid var(--warning)">
+            <div class="kpi-label">Rujukan Tertunda</div>
+            <div class="kpi-value" style="color:var(--warning)">23</div>
+            <div class="kpi-sub">Perlu tindak lanjut</div>
+          </div>
+        </div>
+
+        <!-- Line chart: Volume mingguan -->
+        <div class="screen" style="padding:16px;">
+          <div class="card-hd">
+            <span class="card-title">Volume Skrining Mingguan</span>
+            <span class="badge b-demo">🧪 Data demo</span>
+          </div>
+          <svg class="chart-area" height="120" viewBox="0 0 600 120">
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#153b30" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#153b30" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid lines -->
+            <line x1="0" y1="30" x2="600" y2="30" stroke="#dfe6e2" stroke-width="1"/>
+            <line x1="0" y1="60" x2="600" y2="60" stroke="#dfe6e2" stroke-width="1"/>
+            <line x1="0" y1="90" x2="600" y2="90" stroke="#dfe6e2" stroke-width="1"/>
+            <!-- Labels -->
+            <text x="0" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-1</text>
+            <text x="76" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-2</text>
+            <text x="152" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-3</text>
+            <text x="228" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-4</text>
+            <text x="304" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-5</text>
+            <text x="380" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-6</text>
+            <text x="456" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-7</text>
+            <text x="532" y="116" font-size="9" fill="#7d8b85" font-family="Courier New">Mg-8</text>
+            <!-- Area fill -->
+            <path d="M0,66 L76,50 L152,60 L228,36 L304,44 L380,22 L456,32 L532,6 Z" fill="url(#grad1)"/>
+            <!-- Total line -->
+            <polyline points="0,66 76,50 152,60 228,36 304,44 380,22 456,32 532,6" fill="none" stroke="#153b30" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- High risk line -->
+            <polyline points="0,90 76,80 152,96 228,72 304,84 380,62 456,74 532,50" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3" stroke-linejoin="round"/>
+            <!-- Dots -->
+            <circle cx="0" cy="66" r="3" fill="#153b30"/>
+            <circle cx="76" cy="50" r="3" fill="#153b30"/>
+            <circle cx="152" cy="60" r="3" fill="#153b30"/>
+            <circle cx="228" cy="36" r="3" fill="#153b30"/>
+            <circle cx="304" cy="44" r="3" fill="#153b30"/>
+            <circle cx="380" cy="22" r="3" fill="#153b30"/>
+            <circle cx="456" cy="32" r="3" fill="#153b30"/>
+            <circle cx="532" cy="6" r="3" fill="#153b30"/>
+            <!-- Legend -->
+            <line x1="420" y1="10" x2="440" y2="10" stroke="#153b30" stroke-width="2.5"/>
+            <text x="444" y="13" font-size="8" fill="#14251f" font-family="Courier New">Total</text>
+            <line x1="490" y1="10" x2="510" y2="10" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="514" y="13" font-size="8" fill="#c0392b" font-family="Courier New">Tinggi</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Right: Pie + Bar + Table -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- Donut: risk distribution -->
+        <div class="screen" style="padding:16px;">
+          <div class="card-hd">
+            <span class="card-title">Distribusi Risiko</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:20px;">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <!-- Donut -->
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#f0f4f2" stroke-width="16"/>
+              <!-- Low 35% -->
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#1e8449" stroke-width="16"
+                stroke-dasharray="83.5 155" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+              <!-- Moderate 39% -->
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#d68910" stroke-width="16"
+                stroke-dasharray="93 155" stroke-dashoffset="-83.5" transform="rotate(-90 50 50)"/>
+              <!-- High 26% -->
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#c0392b" stroke-width="16"
+                stroke-dasharray="62 155" stroke-dashoffset="-176.5" transform="rotate(-90 50 50)"/>
+              <text x="50" y="48" text-anchor="middle" font-size="14" font-weight="800" fill="#14251f" font-family="system-ui">154</text>
+              <text x="50" y="60" text-anchor="middle" font-size="7" fill="#7d8b85" font-family="system-ui">total</text>
+            </svg>
+            <div style="display:flex;flex-direction:column;gap:7px;flex:1;">
+              <div style="display:flex;align-items:center;gap:7px;font-size:11px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#1e8449;flex-shrink:0;"></span>
+                <span>Rendah</span><span style="margin-left:auto;font-family:var(--mono);font-weight:700;">54 <span style="color:var(--ink3);font-weight:400">(35%)</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#d68910;flex-shrink:0;"></span>
+                <span>Sedang</span><span style="margin-left:auto;font-family:var(--mono);font-weight:700;">60 <span style="color:var(--ink3);font-weight:400">(39%)</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#c0392b;flex-shrink:0;"></span>
+                <span>Tinggi</span><span style="margin-left:auto;font-family:var(--mono);font-weight:700;">40 <span style="color:var(--ink3);font-weight:400">(26%)</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bar: kelompok -->
+        <div class="screen" style="padding:16px;">
+          <div class="card-hd"><span class="card-title">Per Kelompok Sasaran</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;"><span>Remaja putri</span><span style="font-family:var(--mono);font-weight:700;">82</span></div>
+              <div class="prog-track" style="height:10px;"><div class="prog-fill" style="width:53%;background:#2563eb;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;"><span>Ibu hamil</span><span style="font-family:var(--mono);font-weight:700;">72</span></div>
+              <div class="prog-track" style="height:10px;"><div class="prog-fill" style="width:47%;background:#7c3aed;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referral queue preview -->
+        <div class="screen" style="padding:14px;">
+          <div class="card-hd" style="margin-bottom:8px;">
+            <span class="card-title">Antrean Rujukan</span>
+            <span class="badge b-hi">23 tertunda</span>
+          </div>
+          <table class="mini-table" style="font-size:9px;">
+            <thead><tr><th>ID</th><th>Kelompok</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:var(--mono)">SCR-0003</td><td>Remaja</td><td><span class="badge b-hi">Tinggi</span></td></tr>
+              <tr><td style="font-family:var(--mono)">SCR-0006</td><td>Hamil</td><td><span class="badge b-hi">Tinggi</span></td></tr>
+              <tr><td style="font-family:var(--mono)">SCR-0009</td><td>Remaja</td><td><span class="badge b-hi">Tinggi</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 4. EVIDENCE PAGE ════════════════════════ -->
+  <div class="section">
+    <div class="section-label">04 · Halaman Kinerja Model (Evidence Center)</div>
+    <div class="g3">
+      <!-- Eye CNN -->
+      <div class="model-card">
+        <div class="model-card-head">
+          <div>
+            <div class="model-name">Eye CNN</div>
+            <div class="model-role">Sinyal Visual Utama · CP-AnemiC dataset</div>
+          </div>
+          <div class="model-auc auc-eye">0.945</div>
+        </div>
+        <div class="model-card-body">
+          <div class="row" style="margin-bottom:6px;"><span class="badge b-clinical">Validasi Internal</span></div>
+          <div class="model-stat"><span>ROC-AUC</span><strong>0.9451</strong></div>
+          <div class="model-stat"><span>PR-AUC</span><strong>0.9678</strong></div>
+          <div class="model-stat"><span>Sensitivitas</span><strong>87.5%</strong></div>
+          <div class="model-stat"><span>Spesifisitas</span><strong>81.4%</strong></div>
+          <div class="model-stat"><span>Brier score</span><strong>0.094</strong></div>
+          <div class="prog-track" style="margin-top:8px;">
+            <div class="prog-fill" style="width:94.5%;background:var(--success);"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Nail CNN -->
+      <div class="model-card">
+        <div class="model-card-head">
+          <div>
+            <div class="model-name">Nail CNN (Grouped)</div>
+            <div class="model-role">Sinyal Pendukung · Grouped split</div>
+          </div>
+          <div class="model-auc auc-nail">0.621</div>
+        </div>
+        <div class="model-card-body">
+          <div class="row" style="margin-bottom:6px;"><span class="badge b-accent">Grouped Split</span></div>
+          <div class="model-stat"><span>ROC-AUC</span><strong>0.6209</strong></div>
+          <div class="model-stat"><span>PR-AUC</span><strong>0.7392</strong></div>
+          <div class="model-stat"><span>Sensitivitas</span><strong>77.8%</strong></div>
+          <div class="model-stat"><span>Spesifisitas</span><strong>36.4%</strong></div>
+          <div class="model-stat"><span>Brier score</span><strong>0.241</strong></div>
+          <div class="prog-track" style="margin-top:8px;">
+            <div class="prog-fill" style="width:62%;background:var(--warning);"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Tabular -->
+      <div class="model-card">
+        <div class="model-card-head">
+          <div>
+            <div class="model-name">NHANES LightGBM</div>
+            <div class="model-role">Pendukung Rule-out · NHANES dataset</div>
+          </div>
+          <div class="model-auc auc-tab">0.669</div>
+        </div>
+        <div class="model-card-body">
+          <div class="row" style="margin-bottom:6px;"><span class="badge b-clinical">Validasi Internal</span></div>
+          <div class="model-stat"><span>ROC-AUC</span><strong>0.6685</strong></div>
+          <div class="model-stat"><span>Sensitivitas</span><strong>90.4%</strong></div>
+          <div class="model-stat"><span>Spesifisitas</span><strong>21.9%</strong></div>
+          <div class="model-stat"><span>NPV</span><strong style="color:var(--success)">0.9586 ✓</strong></div>
+          <div class="model-stat"><span>PPV</span><strong>0.1023</strong></div>
+          <div class="prog-track" style="margin-top:8px;">
+            <div class="prog-fill" style="width:66.9%;background:var(--warning);"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Fusion -->
+      <div class="model-card">
+        <div class="model-card-head">
+          <div>
+            <div class="model-name">Classical Late Fusion</div>
+            <div class="model-role">Proof of Concept · Late-fusion eval</div>
+          </div>
+          <div class="model-auc auc-fus">0.824</div>
+        </div>
+        <div class="model-card-body">
+          <div class="row" style="margin-bottom:6px;"><span class="badge b-demo">Proof of Concept</span></div>
+          <div class="model-stat"><span>ROC-AUC</span><strong>0.8238</strong></div>
+          <div class="model-stat"><span>PR-AUC</span><strong>0.9022</strong></div>
+          <div class="model-stat"><span>Sensitivitas</span><strong>90.6%</strong></div>
+          <div class="model-stat"><span>Spesifisitas</span><strong>41.9%</strong></div>
+          <div class="prog-track" style="margin-top:8px;">
+            <div class="prog-fill" style="width:82.4%;background:#2563eb;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- External -->
+      <div class="model-card">
+        <div class="model-card-head" style="background:#fff5f5;">
+          <div>
+            <div class="model-name">External Stress Test</div>
+            <div class="model-role">⚠️ India + Italy cohorts</div>
+          </div>
+          <div class="model-auc auc-ext">0.440</div>
+        </div>
+        <div class="model-card-body">
+          <div class="row" style="margin-bottom:6px;"><span class="badge b-hi">Domain Shift</span></div>
+          <div class="model-stat"><span>Overall AUC</span><strong style="color:var(--danger)">0.4401</strong></div>
+          <div class="model-stat"><span>India AUC</span><strong>0.4905</strong></div>
+          <div class="model-stat"><span>Italy AUC</span><strong style="color:var(--danger)">0.2818</strong></div>
+          <div class="alert al-danger" style="font-size:9px;padding:6px 8px;margin-top:8px;">Validasi lokal Indonesia wajib sebelum penggunaan klinis.</div>
+        </div>
+      </div>
+      <!-- Caveats -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="alert al-warn" style="font-size:11px;">⚠️ Hasil skrining ini bukan diagnosis medis.</div>
+        <div class="alert al-warn" style="font-size:11px;">⚠️ Validasi lokal pada populasi Indonesia diperlukan sebelum penggunaan klinis.</div>
+        <div class="alert al-warn" style="font-size:11px;">⚠️ Fusion belum terbukti lebih unggul daripada model terbaik secara konsisten.</div>
+        <div class="alert al-info" style="font-size:11px;">ℹ️ Prototipe riset berbasis citra dan formulir. Konfirmasi dengan pemeriksaan Hb.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 5. HISTORY ══════════════════════════════ -->
+  <div class="section">
+    <div class="section-label">05 · Halaman Riwayat Skrining</div>
+    <div class="screen" style="padding:20px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <h2 class="screen-title" style="font-size:16px;margin:0;">Riwayat Skrining</h2>
+        <span class="badge b-demo">🧪 Data demo</span>
+        <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;">
+          <input class="form-input" style="width:180px;font-size:11px;" placeholder="🔍 Cari siteId..." />
+          <select class="form-select" style="width:120px;font-size:11px;"><option>Semua risiko</option><option>Rendah</option><option>Sedang</option><option>Tinggi</option></select>
+          <button class="btn btn-ghost btn-sm">🧪 Data Demo</button>
+          <button class="btn btn-primary btn-sm">⬇ Export CSV</button>
+        </div>
+      </div>
+      <table class="mini-table">
+        <thead>
+          <tr>
+            <th>ID Skrining</th>
+            <th>Tanggal</th>
+            <th>Kelompok</th>
+            <th>Risiko</th>
+            <th>Status</th>
+            <th>Tindak Lanjut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family:var(--mono);font-weight:700;font-size:9px;">SCR-0001</td>
+            <td>26 Jun 2026</td><td>Remaja</td>
+            <td><span class="badge b-low">Rendah</span></td>
+            <td><span style="font-size:9px;color:var(--success)">✔ Selesai</span></td>
+            <td><span style="font-size:9px;color:var(--ink3)">Tidak perlu</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-weight:700;font-size:9px;">SCR-0002</td>
+            <td>26 Jun 2026</td><td>Hamil</td>
+            <td><span class="badge b-mod">Sedang</span></td>
+            <td><span style="font-size:9px;color:var(--success)">✔ Selesai</span></td>
+            <td><select class="form-select" style="font-size:9px;padding:2px 5px;height:22px;"><option>Terjadwal</option></select></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-weight:700;font-size:9px;">SCR-0003</td>
+            <td>26 Jun 2026</td><td>Remaja</td>
+            <td><span class="badge b-hi">Tinggi</span></td>
+            <td><span style="font-size:9px;color:var(--success)">✔ Selesai</span></td>
+            <td><select class="form-select" style="font-size:9px;padding:2px 5px;height:22px;"><option>Terjadwal</option></select></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-weight:700;font-size:9px;">SCR-0004</td>
+            <td>25 Jun 2026</td><td>Hamil</td>
+            <td><span class="badge b-low">Rendah</span></td>
+            <td><span style="font-size:9px;color:var(--success)">✔ Selesai</span></td>
+            <td><span style="font-size:9px;color:var(--ink3)">Tidak perlu</span></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);font-weight:700;font-size:9px;">SCR-0008</td>
+            <td>25 Jun 2026</td><td>Hamil</td>
+            <td><span class="badge" style="background:#f1f5f9;color:var(--ink3);">Belum</span></td>
+            <td><span style="font-size:9px;color:var(--warning)">⚠ Tidak selesai</span></td>
+            <td><span style="font-size:9px;color:var(--ink3)">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display:flex;align-items:center;padding-top:10px;border-top:1px solid var(--border);margin-top:4px;font-size:10px;color:var(--ink3);">
+        <span>Menampilkan 30 data demo sintetis</span>
+        <span style="margin-left:auto;">Total 30 record</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 6. MOBILE SCREENS ════════════════════════ -->
+  <div class="section">
+    <div class="section-label">06 · Tampilan Mobile (390×844)</div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;justify-content:center;">
+
+      <!-- Mobile 1: Screening -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;">Skrining Baru</div>
+        <div class="mobile-frame">
+          <div class="mobile-notch"><div class="mobile-notch-pill"></div></div>
+          <div class="mobile-screen">
+            <div class="mobile-topbar">
+              <span>ANEMIA<span style="color:var(--accent)">·</span>SCAN</span>
+              <span style="font-size:10px;color:var(--ink3);">MR</span>
+            </div>
+            <div class="mobile-content">
+              <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Pemeriksaan / Baru</div>
+              <div style="font-size:16px;font-weight:800;color:var(--clinical-dark);margin-bottom:2px;">Skrining baru</div>
+              <div style="font-size:9px;color:var(--ink3);margin-bottom:10px;">Lengkapi 3 modalitas untuk estimasi</div>
+              <!-- Steps mini -->
+              <div style="display:flex;gap:3px;margin-bottom:6px;">
+                <div style="flex:1;height:3px;border-radius:99px;background:var(--success)"></div>
+                <div style="flex:1;height:3px;border-radius:99px;background:var(--success)"></div>
+                <div style="flex:1;height:3px;border-radius:99px;background:var(--accent)"></div>
+                <div style="flex:1;height:3px;border-radius:99px;background:var(--border)"></div>
+              </div>
+              <div style="font-size:8px;color:var(--accent);font-weight:700;margin-bottom:8px;font-family:var(--mono);">LANGKAH 3 · FORMULIR</div>
+              <!-- Form preview -->
+              <div style="background:white;border-radius:8px;border:1px solid var(--border);padding:10px;margin-bottom:8px;">
+                <div style="font-size:10px;font-weight:700;margin-bottom:7px;">Formulir Risiko</div>
+                <div style="font-size:9px;color:var(--ink2);margin-bottom:4px;">Kelompok sasaran</div>
+                <div style="padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:9px;margin-bottom:7px;background:#f8faf9;">Remaja putri</div>
+                <div style="font-size:9px;color:var(--ink2);margin-bottom:4px;">Suplementasi besi</div>
+                <div style="padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:9px;margin-bottom:7px;background:#f8faf9;">Kadang-kadang</div>
+                <div style="font-size:9px;color:var(--ink2);margin-bottom:4px;">Gejala (2 dari 4)</div>
+                <div style="font-size:9px;color:var(--ink2);margin-bottom:3px;">☑ Mudah lelah</div>
+                <div style="font-size:9px;color:var(--ink2);margin-bottom:3px;">☑ Pusing</div>
+                <div style="font-size:9px;color:var(--ink3);">☐ Sesak napas · ☐ Pucat</div>
+              </div>
+              <button class="btn btn-accent" style="width:100%;justify-content:center;font-size:10px;">📊 Hasilkan estimasi</button>
+            </div>
+            <div class="mobile-nav-bar">
+              <div class="mnav-item active"><div class="mnav-icon">🩺</div><span>Skrining</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📍</div><span>Data</span></div>
+              <div class="mnav-item"><div class="mnav-icon">🕐</div><span>Riwayat</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📊</div><span>Model</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile 2: Result -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;">Hasil Estimasi</div>
+        <div class="mobile-frame">
+          <div class="mobile-notch"><div class="mobile-notch-pill"></div></div>
+          <div class="mobile-screen">
+            <div class="mobile-topbar">
+              <span>ANEMIA<span style="color:var(--accent)">·</span>SCAN</span>
+              <span style="font-size:10px;color:var(--ink3);">MR</span>
+            </div>
+            <div class="mobile-content">
+              <!-- Risk card -->
+              <div style="background:#fffbf0;border:1px solid #fde68a;border-left:4px solid var(--risk-mod);border-radius:8px;padding:12px;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                  <span style="font-size:18px;">📈</span>
+                  <div>
+                    <div style="font-size:14px;font-weight:800;color:var(--risk-mod);">Risiko Sedang</div>
+                    <div style="font-size:8px;color:var(--ink3);">Kepercayaan: Sedang</div>
+                  </div>
+                </div>
+                <div style="font-size:9px;padding:6px;background:#fff7ed;border-radius:5px;color:#92400e;">⚠️ Estimasi prototipe — bukan diagnosis medis</div>
+              </div>
+              <!-- Action -->
+              <div style="font-size:9px;color:var(--ink2);background:white;border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;">
+                <div style="font-weight:700;font-size:10px;margin-bottom:4px;">Tindakan selanjutnya</div>
+                Disarankan pemeriksaan darah Hb di puskesmas dalam 2 minggu.
+              </div>
+              <!-- Contributions -->
+              <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;">
+                <div style="font-size:10px;font-weight:700;margin-bottom:8px;">Kontribusi Faktor</div>
+                <div style="margin-bottom:6px;">
+                  <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span>Gejala klinis</span><span style="font-family:var(--mono);color:#e05a4e;font-weight:700;">18%</span></div>
+                  <div style="height:4px;background:var(--border);border-radius:99px;"><div style="width:60%;height:100%;background:#e05a4e;border-radius:99px;"></div></div>
+                </div>
+                <div style="margin-bottom:6px;">
+                  <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span>Sinyal visual</span><span style="font-family:var(--mono);color:#2471a3;font-weight:700;">12%</span></div>
+                  <div style="height:4px;background:var(--border);border-radius:99px;"><div style="width:40%;height:100%;background:#2471a3;border-radius:99px;"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px;"><span>Suplementasi besi</span><span style="font-family:var(--mono);color:#d68910;font-weight:700;">10%</span></div>
+                  <div style="height:4px;background:var(--border);border-radius:99px;"><div style="width:33%;height:100%;background:#d68910;border-radius:99px;"></div></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;font-size:9px;">💾 Simpan</button>
+                <button class="btn btn-ghost btn-sm" style="font-size:9px;">↺ Baru</button>
+              </div>
+            </div>
+            <div class="mobile-nav-bar">
+              <div class="mnav-item active"><div class="mnav-icon">🩺</div><span>Skrining</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📍</div><span>Data</span></div>
+              <div class="mnav-item"><div class="mnav-icon">🕐</div><span>Riwayat</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📊</div><span>Model</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile 3: Dashboard -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;">Dashboard</div>
+        <div class="mobile-frame">
+          <div class="mobile-notch"><div class="mobile-notch-pill"></div></div>
+          <div class="mobile-screen">
+            <div class="mobile-topbar">
+              <span>Data <span style="color:var(--accent)">·</span> Wilayah</span>
+            </div>
+            <div class="mobile-content">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:8px;border-left:3px solid var(--clinical)">
+                  <div style="font-size:8px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;">Total</div>
+                  <div style="font-size:18px;font-weight:800;color:var(--clinical-dark);">154</div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:8px;border-left:3px solid var(--risk-hi)">
+                  <div style="font-size:8px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;">Tinggi</div>
+                  <div style="font-size:18px;font-weight:800;color:var(--risk-hi);">40</div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:8px;border-left:3px solid var(--success)">
+                  <div style="font-size:8px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;">Selesai</div>
+                  <div style="font-size:18px;font-weight:800;color:var(--success);">87%</div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:8px;border-left:3px solid var(--warning)">
+                  <div style="font-size:8px;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;">Rujukan</div>
+                  <div style="font-size:18px;font-weight:800;color:var(--warning);">23</div>
+                </div>
+              </div>
+              <!-- Mini trend chart -->
+              <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;">
+                <div style="font-size:10px;font-weight:700;margin-bottom:6px;">Volume Mingguan</div>
+                <svg width="100%" height="50" viewBox="0 0 240 50">
+                  <polyline points="0,38 30,28 60,35 90,18 120,24 150,10 180,17 210,3" fill="none" stroke="#153b30" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="0" cy="38" r="2.5" fill="#153b30"/>
+                  <circle cx="210" cy="3" r="2.5" fill="#153b30"/>
+                </svg>
+                <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--ink3);font-family:var(--mono)">
+                  <span>Mg-1</span><span>Mg-4</span><span>Mg-8</span>
+                </div>
+              </div>
+              <!-- Donut mini -->
+              <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:10px;">
+                <div style="font-size:10px;font-weight:700;margin-bottom:8px;">Distribusi Risiko</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <svg width="60" height="60" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="22" fill="none" stroke="#f0f4f2" stroke-width="10"/>
+                    <circle cx="30" cy="30" r="22" fill="none" stroke="#1e8449" stroke-width="10" stroke-dasharray="48 90" stroke-dashoffset="0" transform="rotate(-90 30 30)"/>
+                    <circle cx="30" cy="30" r="22" fill="none" stroke="#d68910" stroke-width="10" stroke-dasharray="54 90" stroke-dashoffset="-48" transform="rotate(-90 30 30)"/>
+                    <circle cx="30" cy="30" r="22" fill="none" stroke="#c0392b" stroke-width="10" stroke-dasharray="36 90" stroke-dashoffset="-102" transform="rotate(-90 30 30)"/>
+                  </svg>
+                  <div style="font-size:9px;display:flex;flex-direction:column;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#1e8449;"></span>Rendah 35%</div>
+                    <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#d68910;"></span>Sedang 39%</div>
+                    <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#c0392b;"></span>Tinggi 26%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mobile-nav-bar">
+              <div class="mnav-item"><div class="mnav-icon">🩺</div><span>Skrining</span></div>
+              <div class="mnav-item active"><div class="mnav-icon">📍</div><span>Data</span></div>
+              <div class="mnav-item"><div class="mnav-icon">🕐</div><span>Riwayat</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📊</div><span>Model</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile 4: History -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;">Riwayat</div>
+        <div class="mobile-frame">
+          <div class="mobile-notch"><div class="mobile-notch-pill"></div></div>
+          <div class="mobile-screen">
+            <div class="mobile-topbar">
+              <span>Riwayat <span style="color:var(--accent)">·</span> Skrining</span>
+            </div>
+            <div class="mobile-content">
+              <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <input class="form-input" style="flex:1;font-size:9px;padding:5px 8px;" placeholder="🔍 Cari..." />
+                <select class="form-select" style="width:80px;font-size:9px;padding:5px 6px;"><option>Semua</option></select>
+              </div>
+              <div style="display:flex;gap:6px;margin-bottom:10px;">
+                <button class="btn btn-ghost btn-sm" style="font-size:9px;flex:1;justify-content:center;">🧪 Demo</button>
+                <button class="btn btn-primary btn-sm" style="font-size:9px;flex:1;justify-content:center;">⬇ CSV</button>
+              </div>
+              <!-- Record cards -->
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:9px;">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="font-size:9px;font-family:var(--mono);font-weight:700;">SCR-0001</span>
+                    <span class="badge b-low" style="font-size:7px;">Rendah</span>
+                    <span style="font-size:8px;color:var(--ink3);margin-left:auto;">26 Jun</span>
+                  </div>
+                  <div style="display:flex;gap:8px;font-size:9px;color:var(--ink2);">
+                    <span>Remaja</span> · <span style="color:var(--success)">✔ Selesai</span>
+                  </div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:9px;">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="font-size:9px;font-family:var(--mono);font-weight:700;">SCR-0002</span>
+                    <span class="badge b-mod" style="font-size:7px;">Sedang</span>
+                    <span style="font-size:8px;color:var(--ink3);margin-left:auto;">26 Jun</span>
+                  </div>
+                  <div style="display:flex;gap:8px;font-size:9px;color:var(--ink2);">
+                    <span>Hamil</span> · <span style="color:var(--warning)">📅 Terjadwal</span>
+                  </div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:9px;">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="font-size:9px;font-family:var(--mono);font-weight:700;">SCR-0003</span>
+                    <span class="badge b-hi" style="font-size:7px;">Tinggi</span>
+                    <span style="font-size:8px;color:var(--ink3);margin-left:auto;">26 Jun</span>
+                  </div>
+                  <div style="display:flex;gap:8px;font-size:9px;color:var(--ink2);">
+                    <span>Remaja</span> · <span style="color:var(--danger)">🚨 Rujukan</span>
+                  </div>
+                </div>
+                <div style="background:white;border:1px solid var(--border);border-radius:7px;padding:9px;">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                    <span style="font-size:9px;font-family:var(--mono);font-weight:700;">SCR-0006</span>
+                    <span class="badge b-hi" style="font-size:7px;">Tinggi</span>
+                    <span style="font-size:8px;color:var(--ink3);margin-left:auto;">25 Jun</span>
+                  </div>
+                  <div style="display:flex;gap:8px;font-size:9px;color:var(--ink2);">
+                    <span>Hamil</span> · <span style="color:var(--success)">✔ Selesai</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mobile-nav-bar">
+              <div class="mnav-item"><div class="mnav-icon">🩺</div><span>Skrining</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📍</div><span>Data</span></div>
+              <div class="mnav-item active"><div class="mnav-icon">🕐</div><span>Riwayat</span></div>
+              <div class="mnav-item"><div class="mnav-icon">📊</div><span>Model</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 7. DESIGN TOKENS ════════════════════════ -->
+  <div class="section">
+    <div class="section-label">07 · Design Tokens · Warna, Tipografi, Status</div>
+    <div class="g3">
+      <!-- Color palette -->
+      <div class="screen" style="padding:16px;">
+        <div class="card-title" style="margin-bottom:12px;">Palet Warna</div>
+        <div class="color-grid">
+          <div class="color-chip"><div class="color-swatch" style="background:#153b30"></div><div class="color-name">clinical-900</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#27624d"></div><div class="color-name">clinical-700</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#dff1e8"></div><div class="color-name">clinical-100</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#eb6738"></div><div class="color-name">accent</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#fff0e9"></div><div class="color-name">accent-soft</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#168357"></div><div class="color-name">success</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#1e8449"></div><div class="color-name">risk-low</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#d68910"></div><div class="color-name">risk-mod</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#c0392b"></div><div class="color-name">risk-hi</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#f4f7f5"></div><div class="color-name">canvas</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#ffffff;border:1px solid #dfe6e2"></div><div class="color-name">surface</div></div>
+          <div class="color-chip"><div class="color-swatch" style="background:#14251f"></div><div class="color-name">ink</div></div>
+        </div>
+      </div>
+
+      <!-- Typography -->
+      <div class="screen" style="padding:16px;">
+        <div class="card-title" style="margin-bottom:12px;">Tipografi</div>
+        <div class="type-row">
+          <div style="font-size:24px;font-weight:800;color:var(--clinical-dark);letter-spacing:-.02em;">Heading H1</div>
+          <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);margin-top:3px;">Manrope · 24px · 800 · clinical-950</div>
+        </div>
+        <div class="type-row">
+          <div style="font-size:16px;font-weight:700;color:var(--ink);">Heading H2</div>
+          <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);margin-top:3px;">Manrope · 16px · 700 · ink</div>
+        </div>
+        <div class="type-row">
+          <div style="font-size:13px;font-weight:400;color:var(--ink2);">Body teks konten paragraf</div>
+          <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);margin-top:3px;">Manrope · 13px · 400 · ink-secondary</div>
+        </div>
+        <div class="type-row">
+          <div style="font-size:11px;color:var(--ink3);">Teks muted / caption / keterangan</div>
+          <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);margin-top:3px;">Manrope · 11px · 400 · ink-muted</div>
+        </div>
+        <div class="type-row" style="border:none;">
+          <div style="font-size:11px;font-family:var(--mono);color:var(--ink);">MONO LABEL · 0.094 · SCR-0001</div>
+          <div style="font-size:9px;color:var(--ink3);font-family:var(--mono);margin-top:3px;">IBM Plex Mono · 11px · label/metric</div>
+        </div>
+      </div>
+
+      <!-- Badges + Status -->
+      <div class="screen" style="padding:16px;">
+        <div class="card-title" style="margin-bottom:12px;">Badge, Status, Alert</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+          <span class="badge b-low">Rendah</span>
+          <span class="badge b-mod">Sedang</span>
+          <span class="badge b-hi">Tinggi</span>
+          <span class="badge b-info">Validasi</span>
+          <span class="badge b-accent">Proof-of-concept</span>
+          <span class="badge b-demo">🧪 Demo sintetis</span>
+          <span class="badge b-clinical">Internal</span>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div class="alert al-success" style="font-size:10px;padding:6px 9px;">✔ Kualitas foto memenuhi syarat</div>
+          <div class="alert al-warn" style="font-size:10px;padding:6px 9px;">⚠️ Gambar terlalu gelap, cari cahaya lebih terang</div>
+          <div class="alert al-danger" style="font-size:10px;padding:6px 9px;">🚨 Hasil bukan diagnosis medis · Konfirmasi Hb</div>
+          <div class="alert al-info" style="font-size:10px;padding:6px 9px;">ℹ️ Lengkapi tiga modalitas untuk estimasi</div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;">
+          <button class="btn btn-primary btn-sm">Simpan</button>
+          <button class="btn btn-accent btn-sm">Hasilkan</button>
+          <button class="btn btn-ghost btn-sm">Ulangi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 8. COMPONENT INVENTORY ══════════════════════ -->
+  <div class="section">
+    <div class="section-label">08 · Inventaris Komponen UI</div>
+    <div class="g2">
+      <div class="screen" style="padding:16px;">
+        <div class="card-title" style="margin-bottom:12px;">Camera Capture · States</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <!-- Idle -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--ink3);margin-bottom:5px;">IDLE</div>
+            <div style="border:2px dashed var(--border);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#f8faf9;font-size:9px;color:var(--ink3);">
+              📷<span>Buka Kamera</span>
+            </div>
+          </div>
+          <!-- Live -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--ink3);margin-bottom:5px;">LIVE</div>
+            <div style="border:2px solid var(--accent);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fff0e9;font-size:9px;color:var(--accent);">
+              🔴<span>Rekam...</span>
+            </div>
+          </div>
+          <!-- Captured OK -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--success);margin-bottom:5px;">CAPTURED ✔</div>
+            <div style="border:2px solid var(--success);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#e4f5ec;font-size:9px;color:var(--success);">
+              ✔<span>Layak</span>
+            </div>
+          </div>
+          <!-- Error -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--danger);margin-bottom:5px;">ERROR</div>
+            <div style="border:2px solid var(--danger);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fef2f2;font-size:9px;color:var(--danger);">
+              ❌<span>Kamera N/A</span>
+            </div>
+          </div>
+          <!-- Upload fallback -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--ink3);margin-bottom:5px;">UPLOAD</div>
+            <div style="border:2px dashed var(--clinical);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#eff8f4;font-size:9px;color:var(--clinical);">
+              ⬆<span>Upload foto</span>
+            </div>
+          </div>
+          <!-- Quality fail -->
+          <div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--warning);margin-bottom:5px;">QUAL FAIL</div>
+            <div style="border:2px solid var(--warning);border-radius:7px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fff7ed;font-size:9px;color:var(--warning);">
+              ⚠️<span>Ulangi foto</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" style="padding:16px;">
+        <div class="card-title" style="margin-bottom:12px;">Quality Panel · Metric Bars</div>
+        <div style="background:#f8faf9;border-radius:8px;padding:12px;margin-bottom:10px;">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);font-family:var(--mono);margin-bottom:10px;">Kualitas Gambar</div>
+          <div class="qual-row">
+            <div class="qual-label-row"><span>Kecerahan</span><span style="font-family:var(--mono);font-weight:700;color:var(--success);">78</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:78%;background:var(--success);"></div></div>
+          </div>
+          <div class="qual-row">
+            <div class="qual-label-row"><span>Kontras</span><span style="font-family:var(--mono);font-weight:700;color:var(--success);">65</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:65%;background:var(--success);"></div></div>
+          </div>
+          <div class="qual-row">
+            <div class="qual-label-row"><span>Ketajaman</span><span style="font-family:var(--mono);font-weight:700;color:var(--warning);">42</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:42%;background:var(--warning);"></div></div>
+          </div>
+        </div>
+        <div style="background:#f8faf9;border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:700;margin-bottom:8px;">Risk Engine — Kontribusi</div>
+          <div class="contrib-row">
+            <div class="contrib-header"><span class="contrib-label">Gejala klinis</span><span class="contrib-val" style="color:#e05a4e">18%</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:60%;background:#e05a4e;"></div></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-header"><span class="contrib-label">Sinyal visual</span><span class="contrib-val" style="color:#2471a3">12%</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:40%;background:#2471a3;"></div></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-header"><span class="contrib-label">Suplementasi besi</span><span class="contrib-val" style="color:#d68910">10%</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:33%;background:#d68910;"></div></div>
+          </div>
+          <div class="contrib-row">
+            <div class="contrib-header"><span class="contrib-label">Risiko diet</span><span class="contrib-val" style="color:#d68910">8%</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:25%;background:#d68910;"></div></div>
+          </div>
+          <div class="contrib-row" style="margin-bottom:0;">
+            <div class="contrib-header"><span class="contrib-label">Riwayat/perdarahan</span><span class="contrib-val" style="color:#7d3c98">4%</span></div>
+            <div class="prog-track"><div class="prog-fill" style="width:13%;background:#7d3c98;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:20px 0;color:var(--ink3);font-size:11px;font-family:var(--mono);border-top:1px solid var(--border);">
+    ANEMIA-SCAN · Design Overview · Prototipe Riset · 2026-06-27 · Bukan Diagnosis Medis
+  </div>
+
+</div>
+</body>
+</html>

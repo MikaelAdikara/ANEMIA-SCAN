@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, Hand, ClipboardList, BarChart2 } from 'lucide-react'
+import { Eye, Hand, ClipboardList, BarChart2, CheckCircle } from 'lucide-react'
 import { CameraCapture } from './CameraCapture'
 import { RiskForm } from './RiskForm'
 import { ResultPanel } from './ResultPanel'
@@ -55,91 +55,313 @@ export function ScreeningPage() {
   const canGenerate = eyeDone && nailDone && formDone
 
   return (
-    <div>
-      <div className="page-header">
-        <h1 className="page-title">Skrining Anemia</h1>
-        <p className="page-subtitle">Lengkapi tiga modalitas untuk mendapatkan estimasi risiko</p>
-      </div>
-
-      {/* Tab bar */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 'var(--space-5)', gap: 0, overflowX: 'auto' }}>
-        {TABS.map(({ id, label, icon: Icon }) => {
-          const done = id === 'eye' ? eyeDone : id === 'nail' ? nailDone : id === 'form' ? formDone : !!result
-          const isActive = activeTab === id
-          const disabled = id === 'result' && !result
-          return (
-            <button
-              key={id}
-              onClick={() => !disabled && setActiveTab(id)}
-              disabled={disabled}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px',
-                background: 'transparent', border: 'none', borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                marginBottom: -2, cursor: disabled ? 'not-allowed' : 'pointer',
-                color: isActive ? 'var(--color-primary)' : done ? 'var(--color-success)' : 'var(--color-text-muted)',
-                fontWeight: isActive ? 600 : 400, fontSize: 14, whiteSpace: 'nowrap',
-              }}
-            >
-              <Icon size={16} />
-              {label}
-              {done && id !== 'result' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-success)', display: 'inline-block' }} />}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Tab content */}
-      {activeTab === 'eye' && (
-        <div className="stack">
-          <CameraCapture
-            label="Foto Konjungtiva Mata"
-            onCapture={(q) => { draft.setEyeQuality(q); if (q.eligible) setActiveTab('nail') }}
-            captured={eyeDone}
-          />
-          {eyeDone && (
-            <button className="btn btn-primary" onClick={() => setActiveTab('nail')}>Lanjut ke Foto Kuku →</button>
-          )}
+    <div className="page page-in">
+      {/* Page heading */}
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">Skrining / Modalitas</p>
+          <h1>Skrining Anemia</h1>
+          <p>Lengkapi tiga modalitas untuk mendapatkan estimasi risiko</p>
         </div>
-      )}
+      </header>
 
-      {activeTab === 'nail' && (
+      {/* Two-column screening layout */}
+      <div className="screening-layout">
+        {/* Left column: tab navigator + content */}
         <div className="stack">
-          <CameraCapture
-            label="Foto Kuku Jari"
-            onCapture={(q) => { draft.setNailQuality(q); if (q.eligible) setActiveTab('form') }}
-            captured={nailDone}
-          />
-          {nailDone && (
-            <button className="btn btn-primary" onClick={() => setActiveTab('form')}>Lanjut ke Formulir →</button>
-          )}
-        </div>
-      )}
+          {/* Tab bar */}
+          <div className="tab-bar">
+            {TABS.map(({ id, label, icon: Icon }) => {
+              const done =
+                id === 'eye'
+                  ? eyeDone
+                  : id === 'nail'
+                  ? nailDone
+                  : id === 'form'
+                  ? formDone
+                  : !!result
+              const disabled = id === 'result' && !result
 
-      {activeTab === 'form' && (
-        <div className="stack">
-          <RiskForm form={draft.form} onChange={draft.setForm} />
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`tab-btn${activeTab === id ? ' is-active' : ''}`}
+                  onClick={() => !disabled && setActiveTab(id)}
+                  disabled={disabled}
+                >
+                  <Icon size={15} />
+                  {label}
+                  {done && id !== 'result' && <span className="tab-done" />}
+                </button>
+              )
+            })}
+          </div>
 
-          {!canGenerate && (
-            <div className="alert alert-info">
-              Lengkapi tiga modalitas (foto mata, foto kuku, dan formulir) untuk menghasilkan estimasi.
+          {/* Tab content — Eye */}
+          {activeTab === 'eye' && (
+            <div className="setup-panel">
+              <div className="panel-heading">
+                <span className="panel-heading__icon">
+                  <Eye size={16} />
+                </span>
+                <strong>Foto Konjungtiva Mata</strong>
+              </div>
+              <div style={{ padding: 'var(--space-4)' }}>
+                <CameraCapture
+                  label="Foto Konjungtiva Mata"
+                  onCapture={(q) => {
+                    draft.setEyeQuality(q)
+                    if (q.eligible) setActiveTab('nail')
+                  }}
+                  captured={eyeDone}
+                />
+                {eyeDone && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ marginTop: 'var(--space-3)' }}
+                    onClick={() => setActiveTab('nail')}
+                  >
+                    Lanjut ke Foto Kuku →
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          {error && <div className="alert alert-danger">{error}</div>}
+          {/* Tab content — Nail */}
+          {activeTab === 'nail' && (
+            <div className="setup-panel">
+              <div className="panel-heading">
+                <span className="panel-heading__icon">
+                  <Hand size={16} />
+                </span>
+                <strong>Foto Kuku Jari</strong>
+              </div>
+              <div style={{ padding: 'var(--space-4)' }}>
+                <CameraCapture
+                  label="Foto Kuku Jari"
+                  onCapture={(q) => {
+                    draft.setNailQuality(q)
+                    if (q.eligible) setActiveTab('form')
+                  }}
+                  captured={nailDone}
+                />
+                {nailDone && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ marginTop: 'var(--space-3)' }}
+                    onClick={() => setActiveTab('form')}
+                  >
+                    Lanjut ke Formulir →
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
+          {/* Tab content — Form */}
+          {activeTab === 'form' && (
+            <div className="setup-panel">
+              <div className="panel-heading">
+                <span className="panel-heading__icon">
+                  <ClipboardList size={16} />
+                </span>
+                <strong>Formulir Klinis</strong>
+              </div>
+              <div style={{ padding: 'var(--space-4)' }}>
+                <RiskForm form={draft.form} onChange={draft.setForm} />
+
+                {!canGenerate && (
+                  <div className="alert alert-info" style={{ marginTop: 'var(--space-3)' }}>
+                    Lengkapi tiga modalitas (foto mata, foto kuku, dan formulir) untuk menghasilkan
+                    estimasi.
+                  </div>
+                )}
+
+                {error && (
+                  <div className="alert alert-danger" style={{ marginTop: 'var(--space-3)' }}>
+                    {error}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab content — Result */}
+          {activeTab === 'result' && result && (
+            <ResultPanel result={result} form={draft.form} onReset={reset} />
+          )}
+        </div>
+
+        {/* Right column: readiness panel */}
+        <aside className="readiness-panel" style={{ position: 'sticky', top: 'var(--space-4)' }}>
+          <div className="panel-heading">
+            <span className="panel-heading__icon panel-heading__icon--green">
+              <CheckCircle size={15} />
+            </span>
+            <strong>Kesiapan Skrining</strong>
+          </div>
+
+          {/* Checklist */}
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: '0 0 var(--space-5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
+            }}
+          >
+            <li>
+              <ReadinessItem
+                label="Foto Konjungtiva Mata"
+                done={eyeDone}
+                onClick={() => setActiveTab('eye')}
+              />
+            </li>
+            <li>
+              <ReadinessItem
+                label="Foto Kuku Jari"
+                done={nailDone}
+                onClick={() => setActiveTab('nail')}
+              />
+            </li>
+            <li>
+              <ReadinessItem
+                label="Formulir Klinis"
+                done={formDone}
+                onClick={() => setActiveTab('form')}
+              />
+            </li>
+          </ul>
+
+          {/* Progress bar */}
+          <div style={{ marginBottom: 'var(--space-5)' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: 'var(--color-ink-secondary)',
+                marginBottom: 'var(--space-2)',
+              }}
+            >
+              <span>Kelengkapan</span>
+              <span>{[eyeDone, nailDone, formDone].filter(Boolean).length} / 3</span>
+            </div>
+            <div className="progress-bar-track">
+              <div
+                className="progress-bar-fill"
+                style={{
+                  width: `${([eyeDone, nailDone, formDone].filter(Boolean).length / 3) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Generate button */}
           <button
-            className="btn btn-action btn-lg"
+            type="button"
+            className="btn btn-action btn-lg btn-full"
             onClick={generateResult}
             disabled={!canGenerate}
           >
-            <BarChart2 size={18} /> Hasilkan estimasi
+            <BarChart2 size={16} />
+            Hasilkan Estimasi
           </button>
-        </div>
-      )}
 
-      {activeTab === 'result' && result && (
-        <ResultPanel result={result} form={draft.form} onReset={reset} />
-      )}
+          {/* Hint text when ready */}
+          {canGenerate && (
+            <p
+              style={{
+                fontSize: '0.72rem',
+                color: 'var(--color-ink-muted)',
+                textAlign: 'center',
+                marginTop: 'var(--space-3)',
+                lineHeight: 1.5,
+              }}
+            >
+              Semua modalitas siap. Tekan tombol di atas untuk melihat hasil.
+            </p>
+          )}
+        </aside>
+      </div>
+
+      {/* Clinical disclaimer */}
+      <div className="clinical-note" style={{ marginTop: 'var(--space-6)' }}>
+        <strong>Catatan Klinis:</strong> Estimasi ini bukan pengganti pemeriksaan Hb laboratorium.
+        Hasil hanya digunakan sebagai panduan triase awal oleh tenaga kesehatan terlatih.
+      </div>
     </div>
+  )
+}
+
+// ── Internal sub-component ───────────────────────────────────────────────────
+
+function ReadinessItem({
+  label,
+  done,
+  onClick,
+}: {
+  label: string
+  done: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-3)',
+        width: '100%',
+        background: 'transparent',
+        border: 'none',
+        padding: 'var(--space-2) 0',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      {done ? (
+        <CheckCircle size={18} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
+      ) : (
+        <span
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            border: '2px solid var(--color-border-strong)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'var(--color-ink-faint)',
+              display: 'block',
+            }}
+          />
+        </span>
+      )}
+      <span
+        style={{
+          fontSize: '0.85rem',
+          color: done ? 'var(--color-ink)' : 'var(--color-ink-muted)',
+          fontWeight: done ? 500 : 400,
+        }}
+      >
+        {label}
+      </span>
+    </button>
   )
 }

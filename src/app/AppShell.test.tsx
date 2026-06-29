@@ -1,14 +1,20 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
-import App from '../App'
+import { AppShell } from './AppShell'
 
 describe('AppShell', () => {
-  it('renders the primary workspace navigation', () => {
-    render(<App />)
+  it('shows the primary screening and monitoring navigation', () => {
+    render(
+      <MemoryRouter>
+        <AppShell />
+      </MemoryRouter>,
+    )
 
-    expect(screen.getAllByText('Skrining baru').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Data wilayah').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Kinerja model').length).toBeGreaterThan(0)
+    expect(screen.getByText('Lewati ke konten utama')).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: /skrining baru/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /data wilayah/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /kinerja model/i }).length).toBeGreaterThan(0)
   })
 })

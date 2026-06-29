@@ -55,89 +55,131 @@ const HIGH_RISK = 40
 const COMPLETION_RATE = 87
 const REFERRALS_PENDING = 23
 
+// ── Tooltip style ───────────────────────────────────────────────────────────
+
+const TOOLTIP_STYLE = {
+  background: '#1a1a2e',
+  border: 'none',
+  borderRadius: 8,
+  color: '#fff',
+  fontSize: 12,
+  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function DashboardPage() {
   return (
-    <div className="stack">
-      {/* Page header */}
-      <div className="page-header">
-        <div className="row" style={{ alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <h1 className="page-title">Dashboard Pemantauan</h1>
-          <DemoDataBadge />
+    <div className="page page-in">
+      {/* Page heading */}
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">Insight / Wilayah</p>
+          <h1>Ringkasan Wilayah</h1>
+          <p>Ringkasan hasil skrining anemia — data sintetis untuk demonstrasi</p>
         </div>
-        <p className="page-subtitle">
-          Ringkasan hasil skrining anemia — data sintetis untuk demonstrasi
-        </p>
-      </div>
+        <DemoDataBadge />
+      </header>
 
       {/* KPI cards */}
-      <div className="grid-4">
-        <div className="card">
-          <div className="card-header">
-            <Activity size={16} style={{ color: '#2563eb' }} />
-            <span className="card-title">Total Skrining</span>
+      <div className="grid-4" style={{ marginBottom: 'var(--space-6)' }}>
+        {/* Total Skrining */}
+        <div className="kpi-card kpi-card--blue">
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 'var(--space-3)',
+            }}
+          >
+            <Activity size={16} style={{ color: '#fff' }} />
           </div>
-          <p style={{ fontSize: '2rem', fontWeight: 700, margin: '8px 0 2px' }}>{TOTAL}</p>
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>8 minggu terakhir</p>
+          <div className="kpi-label">Total Skrining</div>
+          <div className="kpi-value">{TOTAL}</div>
+          <div className="kpi-sub">8 minggu terakhir</div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <AlertTriangle size={16} style={{ color: '#c0392b' }} />
-            <span className="card-title">Risiko Tinggi</span>
-          </div>
-          <p
-            style={{ fontSize: '2rem', fontWeight: 700, color: '#c0392b', margin: '8px 0 2px' }}
+        {/* Risiko Tinggi */}
+        <div className="kpi-card kpi-card--red">
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 'var(--space-3)',
+            }}
           >
-            {HIGH_RISK}
-          </p>
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
-            {((HIGH_RISK / TOTAL) * 100).toFixed(1)}% dari total
-          </p>
+            <AlertTriangle size={16} style={{ color: '#fff' }} />
+          </div>
+          <div className="kpi-label">Risiko Tinggi</div>
+          <div className="kpi-value">{HIGH_RISK}</div>
+          <div className="kpi-sub">{((HIGH_RISK / TOTAL) * 100).toFixed(1)}% dari total</div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <CheckCircle size={16} style={{ color: '#1e8449' }} />
-            <span className="card-title">Tingkat Penyelesaian</span>
-          </div>
-          <p
-            style={{ fontSize: '2rem', fontWeight: 700, color: '#1e8449', margin: '8px 0 2px' }}
+        {/* Tingkat Penyelesaian */}
+        <div className="kpi-card kpi-card--green">
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 'var(--space-3)',
+            }}
           >
-            {COMPLETION_RATE}%
-          </p>
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>skrining selesai penuh</p>
+            <CheckCircle size={16} style={{ color: '#fff' }} />
+          </div>
+          <div className="kpi-label">Tingkat Penyelesaian</div>
+          <div className="kpi-value">{COMPLETION_RATE}%</div>
+          <div className="kpi-sub">skrining selesai penuh</div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <Clock size={16} style={{ color: '#d68910' }} />
-            <span className="card-title">Rujukan Tertunda</span>
-          </div>
-          <p
-            style={{ fontSize: '2rem', fontWeight: 700, color: '#d68910', margin: '8px 0 2px' }}
+        {/* Rujukan Tertunda */}
+        <div className="kpi-card kpi-card--amber">
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 'var(--space-3)',
+            }}
           >
-            {REFERRALS_PENDING}
-          </p>
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
-            belum ditindaklanjuti
-          </p>
+            <Clock size={16} style={{ color: '#fff' }} />
+          </div>
+          <div className="kpi-label">Rujukan Tertunda</div>
+          <div className="kpi-value">{REFERRALS_PENDING}</div>
+          <div className="kpi-sub">belum ditindaklanjuti</div>
         </div>
       </div>
 
       {/* Line chart — weekly screening volume */}
-      <div className="card">
+      <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
         <div className="card-header">
           <span className="card-title">Volume Skrining Mingguan</span>
         </div>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={260}>
           <LineChart data={WEEKLY_VOLUME} margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
-            <Legend />
+            <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" />
+            <XAxis dataKey="week" tick={{ fontSize: 11, fill: 'var(--color-ink-muted)' }} />
+            <YAxis tick={{ fontSize: 11, fill: 'var(--color-ink-muted)' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
             <Line
               type="monotone"
               dataKey="total"
@@ -175,7 +217,8 @@ export function DashboardPage() {
         </ResponsiveContainer>
       </div>
 
-      <div className="grid-2">
+      {/* Bottom charts — 2-column grid */}
+      <div className="grid-2" style={{ marginBottom: 'var(--space-6)' }}>
         {/* Pie chart — risk distribution */}
         <div className="card">
           <div className="card-header">
@@ -197,8 +240,11 @@ export function DashboardPage() {
                   <Cell key={entry.name} fill={RISK_COLORS[entry.name]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => [`${Number(value)} skrining`, 'Jumlah']} />
-              <Legend />
+              <Tooltip
+                formatter={(value) => [`${Number(value)} skrining`, 'Jumlah']}
+                contentStyle={TOOLTIP_STYLE}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -213,10 +259,16 @@ export function DashboardPage() {
               data={TARGET_GROUP_DATA}
               margin={{ top: 8, right: 24, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="kelompok" tick={{ fontSize: 13 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(value) => [`${Number(value)} skrining`, 'Jumlah']} />
+              <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="kelompok"
+                tick={{ fontSize: 11, fill: 'var(--color-ink-muted)' }}
+              />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--color-ink-muted)' }} />
+              <Tooltip
+                formatter={(value) => [`${Number(value)} skrining`, 'Jumlah']}
+                contentStyle={TOOLTIP_STYLE}
+              />
               <Bar dataKey="jumlah" name="Jumlah Skrining" radius={[4, 4, 0, 0]}>
                 {TARGET_GROUP_DATA.map((_, i) => (
                   <Cell key={i} fill={GROUP_COLORS[i % GROUP_COLORS.length]} />
